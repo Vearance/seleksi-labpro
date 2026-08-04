@@ -1,0 +1,12 @@
+packages:
+  - "packages/*"
+  - "auth-provider/*"
+  - "applications/*"
+
+allowBuilds:
+  esbuild: set this to true or false
+
+# Allow postinstall build scripts for dependencies that need them.
+# esbuild is used by Vite/Vitest; add Prisma packages here when they arrive.
+onlyBuiltDependencies:
+  - esbuild

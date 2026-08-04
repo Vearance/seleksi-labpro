@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Environment — secrets live only in .env, never commit them
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Editor / OS / tooling
+.agents/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+coverage/
+
+# Prisma generated clients are resolved via node_modules; keep migrations
+packages/*/prisma/*.db
