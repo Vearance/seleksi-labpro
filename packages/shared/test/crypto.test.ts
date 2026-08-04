@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  generateTOTP,
+  generateTOTPSecret,
   hashPassword,
   randomToken,
   sha256Hex,
   timingSafeEqualHex,
   verifyPassword,
+  verifyTOTP,
 } from "../src/crypto.js";
 
 describe("randomToken", () => {
@@ -56,5 +59,43 @@ describe("password hashing (argon2id)", () => {
   it("rejects wrong passwords", async () => {
     const hash = await hashPassword("right");
     expect(await verifyPassword(hash, "wrong")).toBe(false);
+  });
+});
+
+describe("TOTP (RFC 6238)", () => {
+  it("generates base32 secrets", () => {
+    const secret = generateTOTPSecret();
+    expect(secret).toMatch(/^[A-Z2-7]+$/);
+    // default 20 bytes → 32 base32 chars
+    expect(secret.length).toBe(32);
+  });
+
+  it("generates 6-digit numeric codes", () => {
+    const code = generateTOTP("JBSWY3DPEHPK3PXP");
+    expect(code).toMatch(/^\d{6}$/);
+  });
+
+  it("produces the same code within the same time step", () => {
+    const secret = generateTOTPSecret();
+    const a = generateTOTP(secret);
+    const b = generateTOTP(secret);
+    expect(a).toBe(b);
+  });
+
+  it("verifyTOTP accepts the current code", () => {
+    const secret = generateTOTPSecret();
+    const code = generateTOTP(secret);
+    expect(verifyTOTP(secret, code)).toBe(true);
+  });
+
+  it("verifyTOTP rejects a wrong code", () => {
+    const secret = generateTOTPSecret();
+    expect(verifyTOTP(secret, "000000")).toBe(false);
+  });
+
+  it("supports custom digits and period", () => {
+    const secret = generateTOTPSecret();
+    const code = generateTOTP(secret, { digits: 8, period: 60 });
+    expect(code).toMatch(/^\d{8}$/);
   });
 });

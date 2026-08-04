@@ -1,4 +1,4 @@
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { hash as argon2idHash, verify as argon2idVerify } from "@node-rs/argon2";
 
 /**
@@ -42,4 +42,93 @@ export async function hashPassword(password: string): Promise<string> {
 /** Verifies a password against an Argon2id hash (constant-time). */
 export async function verifyPassword(hash: string, password: string): Promise<boolean> {
   return argon2idVerify(hash, password);
+}
+
+
+// TOTP Functions
+// 
+const BASE32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+function encodeBase32(buf: Buffer): string {
+  let bits = 0;
+  let value = 0;
+  let out = "";
+  for (const byte of buf) {
+    value = (value << 8) | byte;
+    bits += 8;
+    while (bits >= 5) {
+      out += BASE32[(value >>> (bits - 5)) & 31]!;
+      bits -= 5;
+    }
+  }
+  if (bits > 0) {
+    out += BASE32[(value << (5 - bits)) & 31]!;
+  }
+  return out;
+}
+
+function decodeBase32(str: string): Buffer {
+  const clean = str.toUpperCase().replace(/=+$/, "").replace(/\s+/g, "");
+  let bits = 0;
+  let value = 0;
+  const bytes: number[] = [];
+  for (const ch of clean) {
+    const idx = BASE32.indexOf(ch);
+    if (idx === -1) continue; // skip invalid chars (hyphens, etc.)
+    value = (value << 5) | idx;
+    bits += 5;
+    if (bits >= 8) {
+      bytes.push((value >>> (bits - 8)) & 255);
+      bits -= 8;
+    }
+  }
+  return Buffer.from(bytes);
+}
+
+function hotp(key: Buffer, counter: bigint, algorithm: "sha1" | "sha256", digits: number): string {
+  const counterBuf = Buffer.alloc(8);
+  counterBuf.writeBigUInt64BE(counter, 0);
+  const hmac = createHmac(algorithm, key).update(counterBuf).digest();
+  const offset = hmac[hmac.length - 1]! & 0x0f;
+  const binary =
+    ((hmac[offset]! & 0x7f) << 24) |
+    ((hmac[offset + 1]! & 0xff) << 16) |
+    ((hmac[offset + 2]! & 0xff) << 8) |
+    (hmac[offset + 3]! & 0xff);
+  const code = binary % 10 ** digits;
+  return String(code).padStart(digits, "0");
+}
+
+export interface TOTPOptions {
+  digits?: number;
+  period?: number;
+  algorithm?: "sha1" | "sha256";
+}
+
+/** Generates a fresh TOTP secret for a user. */
+export function generateTOTPSecret(byteLength = 20): string {
+  return encodeBase32(randomBytes(byteLength));
+}
+
+/** Computes the current 6-digit TOTP code for the given base32-encoded secret. */
+export function generateTOTP(secret: string, options?: TOTPOptions): string {
+  const { digits = 6, period = 30, algorithm = "sha1" } = options ?? {};
+  const key = decodeBase32(secret);
+  const counter = Math.floor(Date.now() / 1000 / period);
+  return hotp(key, BigInt(counter), algorithm, digits);
+}
+
+/**
+ * Verifies a TOTP token against the given secret. Accepts a 1 time-step window to account for clock drift (~30 seconds either side).
+ */
+export function verifyTOTP(secret: string, token: string, window = 1, options?: TOTPOptions): boolean {
+  const { digits = 6, period = 30, algorithm = "sha1" } = options ?? {};
+  const key = decodeBase32(secret);
+  const now = Math.floor(Date.now() / 1000 / period);
+  for (let drift = -window; drift <= window; drift++) {
+    if (hotp(key, BigInt(now + drift), algorithm, digits) === token) {
+      return true;
+    }
+  }
+  return false;
 }
