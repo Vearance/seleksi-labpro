@@ -23,5 +23,8 @@ logs/
 Thumbs.db
 coverage/
 
-# Prisma generated clients are resolved via node_modules; keep migrations
+# Prisma generated clients — reproducible via `prisma generate`
+**/generated/
+
+# DB files (sqlite dev fallback)
 packages/*/prisma/*.db

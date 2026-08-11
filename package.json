@@ -11,7 +11,10 @@
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "db:migrate": "pnpm --filter @sso/db db:migrate && pnpm --filter @sso/db-local db:migrate",
+    "db:migrate:deploy": "pnpm --filter @sso/db db:migrate:deploy && pnpm --filter @sso/db-local db:migrate:deploy",
+    "db:seed": "pnpm --filter @sso/db db:seed"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

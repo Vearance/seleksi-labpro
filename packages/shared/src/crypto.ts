@@ -26,7 +26,7 @@ export function timingSafeEqualHex(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB);
 }
 
-// Argon2id parameters.
+// Argon2id parameters, OWASP minimum
 const ARGON2_OPTIONS = {
   algorithm: 2, // Argon2id
   memoryCost: 19_456,
@@ -110,7 +110,7 @@ export function generateTOTPSecret(byteLength = 20): string {
   return encodeBase32(randomBytes(byteLength));
 }
 
-/** Computes the current 6-digit TOTP code for the given base32-encoded secret. */
+/** Computes the current 6-digit TOTP code for the given base32-encoded secret; used once in MFA setup */
 export function generateTOTP(secret: string, options?: TOTPOptions): string {
   const { digits = 6, period = 30, algorithm = "sha1" } = options ?? {};
   const key = decodeBase32(secret);

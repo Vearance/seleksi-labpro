@@ -87,7 +87,7 @@ seleksi-labpro/
 ├── applications/
 │   ├── app-a/         # @sso/app-a — Fastify + React SPA
 │   └── app-b/         # @sso/app-b — same shape as app-a
-├── infra/             # postgres init scripts, rabbitmq definitions (queues, DLX)
+├── infra/             # rabbitmq definitions (queues, DLX) — deferred to Phase 4
 ├── docs/              # arsitektur, keputusan-teknis, endpoints
 ├── tasks/             # plan.md, todo.md
 ├── docker-compose.yml
