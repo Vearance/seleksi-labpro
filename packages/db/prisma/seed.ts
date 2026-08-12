@@ -53,10 +53,10 @@ async function seed(): Promise<void> {
 
   console.log("[seed] Seeding users …");
   const userArgs = [
-    { id: USERS.admin, username: env("SEED_ADMIN_USERNAME"), email: env("SEED_ADMIN_EMAIL"), passwordHash: adminHash, fullName: "Admin", status: "ACTIVE" as const },
-    { id: USERS.alice, username: "alice", email: "alice@example.com", passwordHash: demoHash, fullName: "Alice", status: "ACTIVE" as const },
-    { id: USERS.bob, username: "bob", email: "bob@example.com", passwordHash: demoHash, fullName: "Bob", status: "ACTIVE" as const },
-    { id: USERS.charlie, username: "charlie", email: "charlie@example.com", passwordHash: demoHash, fullName: "Charlie", status: "ACTIVE" as const },
+    { id: USERS.admin, name: "Admin", email: env("SEED_ADMIN_EMAIL"), passwordHash: adminHash, status: "ACTIVE" as const },
+    { id: USERS.alice, name: "Alice", email: "alice@example.com", passwordHash: demoHash, status: "ACTIVE" as const },
+    { id: USERS.bob, name: "Bob", email: "bob@example.com", passwordHash: demoHash, status: "ACTIVE" as const },
+    { id: USERS.charlie, name: "Charlie", email: "charlie@example.com", passwordHash: demoHash, status: "ACTIVE" as const },
   ];
   for (const args of userArgs) {
     await prisma.user.upsert({ where: { id: args.id }, create: args, update: {} });
@@ -86,12 +86,12 @@ async function seed(): Promise<void> {
   console.log("[seed] Seeding applications …");
   const appA = await prisma.application.upsert({
     where: { id: APPS.appA },
-    create: { id: APPS.appA, clientId: appAClientId, name: "App A", clientSecretHash: appAHash, logoutNotificationUrl: "http://app-a:4001/internal/logout", status: "ACTIVE" },
+    create: { id: APPS.appA, clientId: appAClientId, name: "App A", clientSecretHash: appAHash, launchUrl: "http://localhost:4001/", logoutNotificationUrl: "http://app-a:4001/internal/logout", status: "ACTIVE" },
     update: {},
   });
   const appB = await prisma.application.upsert({
     where: { id: APPS.appB },
-    create: { id: APPS.appB, clientId: appBClientId, name: "App B", clientSecretHash: appBHash, logoutNotificationUrl: "http://app-b:4002/internal/logout", status: "ACTIVE" },
+    create: { id: APPS.appB, clientId: appBClientId, name: "App B", clientSecretHash: appBHash, launchUrl: "http://localhost:4002/", logoutNotificationUrl: "http://app-b:4002/internal/logout", status: "ACTIVE" },
     update: {},
   });
 

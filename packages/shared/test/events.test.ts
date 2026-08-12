@@ -16,43 +16,41 @@ describe("EventTypeSchema", () => {
 });
 
 describe("EventEnvelopeSchema", () => {
-  it("accepts a valid SessionRevoked envelope", () => {
-    const envelope = {
-      eventId: uuid("1"),
-      type: "SessionRevoked",
-      occurredAt: "2026-08-04T10:00:00.000Z",
-      applicationIds: ["app-a", "app-b"],
-      payload: {
-        type: "SessionRevoked",
-        data: { userId: uuid("2"), sessionId: uuid("3"), reason: "user logout" },
-      },
-    };
-    expect(EventEnvelopeSchema.parse(envelope).payload.type).toBe("SessionRevoked");
+  const base = {
+    eventId: uuid("1"),
+    eventType: "SessionRevoked",
+    userId: uuid("2"),
+    centralSessionId: uuid("3"),
+    applicationId: null,
+    reason: "sso_logout",
+    occurredAt: "2026-07-28T10:00:00.000Z",
+  };
+
+  it("accepts a valid envelope matching the spec payload", () => {
+    const parsed = EventEnvelopeSchema.parse(base);
+    expect(parsed.eventType).toBe("SessionRevoked");
+    expect(parsed.applicationId).toBeNull();
   });
 
-  it("accepts any valid payload regardless of envelope-level type (cross-check is consumer logic)", () => {
-    const envelope = {
-      eventId: uuid("1"),
-      type: "PasswordChanged",
-      occurredAt: "2026-08-04T10:00:00.000Z",
-      applicationIds: ["app-a"],
-      payload: {
-        type: "SessionRevoked",
-        data: { userId: uuid("2"), sessionId: uuid("3") },
-      },
-    };
-    // Schema validates the payload union independently — this is still valid input.
-    expect(() => EventEnvelopeSchema.parse(envelope)).not.toThrow();
+  it("defaults metadata to an empty object when omitted", () => {
+    const parsed = EventEnvelopeSchema.parse(base);
+    expect(parsed.metadata).toEqual({});
   });
 
-  it("requires at least one target application", () => {
-    const envelope = {
-      eventId: uuid("1"),
-      type: "PasswordChanged",
-      occurredAt: "2026-08-04T10:00:00.000Z",
-      applicationIds: [],
-      payload: { type: "PasswordChanged", data: { userId: uuid("2") } },
-    };
-    expect(() => EventEnvelopeSchema.parse(envelope)).toThrow();
+  it("accepts an application-scoped event with an applicationId", () => {
+    const parsed = EventEnvelopeSchema.parse({
+      ...base,
+      eventType: "AccessPolicyChanged",
+      applicationId: uuid("4"),
+    });
+    expect(parsed.applicationId).toBe(uuid("4"));
+  });
+
+  it("requires a valid UUID userId", () => {
+    expect(() => EventEnvelopeSchema.parse({ ...base, userId: "not-a-uuid" })).toThrow();
+  });
+
+  it("rejects an unknown eventType", () => {
+    expect(() => EventEnvelopeSchema.parse({ ...base, eventType: "Nope" })).toThrow();
   });
 });
