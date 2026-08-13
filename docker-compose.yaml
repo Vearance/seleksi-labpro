@@ -68,9 +68,28 @@ services:
   # ── Auth Provider ───────────────────────────────────────────────────
 
   auth-server:
-    image: node:22-alpine
+    build:
+      context: .
+      dockerfile: auth-provider/server/Dockerfile
     container_name: sso-auth-server
-    command: ["tail", "-f", "/dev/null"]
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      AUTH_SERVER_HOST: 0.0.0.0
+      AUTH_SERVER_PORT: ${AUTH_SERVER_PORT:-3000}
+      AUTH_SERVER_COOKIE_NAME: ${AUTH_SERVER_COOKIE_NAME:-auth_sid}
+      AUTH_SERVER_COOKIE_SECRET: ${AUTH_SERVER_COOKIE_SECRET:-change-me-cookie-signing-secret}
+      AUTH_SERVER_PUBLIC_URL: ${AUTH_SERVER_PUBLIC_URL:-http://localhost:3000}
+      AUTH_SERVER_INTERNAL_URL: ${AUTH_SERVER_INTERNAL_URL:-http://auth-server:3000}
+      DATABASE_URL: postgresql://${POSTGRES_PRIMARY_USER:-sso}:${POSTGRES_PRIMARY_PASSWORD:-change-me}@postgres-primary:5432/${POSTGRES_PRIMARY_DB:-sso_primary}
+      SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-admin}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@example.com}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-change-me-admin-password}
+      SEED_DEMO_PASSWORD: ${SEED_DEMO_PASSWORD:-change-me-demo-password}
+      APP_A_CLIENT_ID: ${APP_A_CLIENT_ID:-app-a-client}
+      APP_A_CLIENT_SECRET: ${APP_A_CLIENT_SECRET:-change-me-app-a-secret}
+      APP_B_CLIENT_ID: ${APP_B_CLIENT_ID:-app-b-client}
+      APP_B_CLIENT_SECRET: ${APP_B_CLIENT_SECRET:-change-me-app-b-secret}
     ports:
       - "${AUTH_SERVER_PORT:-3000}:3000"
     depends_on:
@@ -78,6 +97,11 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   control-panel:
