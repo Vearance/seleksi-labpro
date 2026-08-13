@@ -47,7 +47,7 @@ model ProfileCache {
   @@map("profile_cache")
 }
 
-// ── Processed Events (idempotency) ───────────────────────────────────
+// Processed Events (idempotency)
 
 model ProcessedEvent {
   applicationId String   @map("application_id")
