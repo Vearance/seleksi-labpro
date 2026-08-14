@@ -84,7 +84,7 @@ button:disabled {
 }
 
 .dashboard {
-  width: 640px;
+  width: 900px;
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
@@ -114,4 +114,62 @@ button:disabled {
 .muted {
   color: #777;
   font-size: 14px;
+}
+
+nav {
+  display: flex;
+  gap: 8px;
+}
+
+nav button {
+  margin: 0;
+  padding: 8px 14px;
+  background: #eef2ff;
+  color: #2563eb;
+  font-size: 14px;
+}
+
+.inline-form {
+  flex-direction: row;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.inline-form input {
+  flex: 1;
+}
+
+.inline-form button {
+  margin: 0;
+  padding: 10px 16px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+th {
+  color: #666;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+td button {
+  margin: 0 4px 0 0;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+td button.danger {
+  background: #dc2626;
 }

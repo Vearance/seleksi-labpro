@@ -1,5 +1,6 @@
 import { useEffect, useState, type SubmitEvent } from "react";
 import { getAdmin, login, type AdminUser } from "./api";
+import UsersPage from "./pages/UsersPage";
 
 function LoginForm({ onLogin }: { onLogin: (admin: AdminUser) => void }) {
   const [email, setEmail] = useState("");
@@ -56,19 +57,30 @@ function LoginForm({ onLogin }: { onLogin: (admin: AdminUser) => void }) {
   );
 }
 
-function Dashboard({ admin }: { admin: AdminUser }) {
+function Shell({ admin }: { admin: AdminUser }) {
+  const [page, setPage] = useState<"home" | "users">("home");
+
   return (
     <div className="dashboard">
       <header>
         <span className="brand">SSO Control Panel</span>
+        <nav>
+          <button onClick={() => setPage("home")}>Home</button>
+          <button onClick={() => setPage("users")}>Users</button>
+        </nav>
         <span className="whoami">
           Hello, <strong>{admin.name}</strong>
         </span>
       </header>
       <main>
-        <h2>Welcome</h2>
-        <p>You are signed in as {admin.email}.</p>
-        <p className="muted">User / group / application management coming soon.</p>
+        {page === "home" ? (
+          <>
+            <h2>Welcome</h2>
+            <p>You are signed in as {admin.email}.</p>
+          </>
+        ) : (
+          <UsersPage />
+        )}
       </main>
     </div>
   );
@@ -86,5 +98,5 @@ export default function App() {
 
   if (loading) return <p className="loading">Loading…</p>;
   if (!admin) return <LoginForm onLogin={setAdmin} />;
-  return <Dashboard admin={admin} />;
+  return <Shell admin={admin} />;
 }

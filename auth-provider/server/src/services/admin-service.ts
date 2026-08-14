@@ -1,11 +1,5 @@
 import type { PrismaClient } from "@sso/db";
-import { verifyPassword } from "@sso/shared";
-
-export interface AdminUser {
-  id: string;
-  name: string;
-  email: string;
-}
+import { verifyPassword, type AdminUser } from "@sso/shared";
 
 /**
  * Authenticates admin credentials. Returns null for any failure.

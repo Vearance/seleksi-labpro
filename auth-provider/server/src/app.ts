@@ -10,6 +10,7 @@ import { notFoundHandler } from "./plugins/not-found.js";
 import { healthRoutes } from "./routes/health.js";
 import { adminLoginRoutes } from "./routes/admin/login.js";
 import { adminMeRoutes } from "./routes/admin/me.js";
+import { adminUsersRoutes } from "./routes/admin/users.js";
 
 export interface BuildServerOptions {
   config: Env;
@@ -46,6 +47,7 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
 
   server.register(adminLoginRoutes, { prefix: "/admin" });
   server.register(adminMeRoutes, { prefix: "/admin" });
+  server.register(adminUsersRoutes, { prefix: "/admin" });
 
   server.setErrorHandler(errorHandler);
   server.setNotFoundHandler(notFoundHandler);
