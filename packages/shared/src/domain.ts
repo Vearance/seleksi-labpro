@@ -6,6 +6,7 @@ export type ApplicationId = (typeof APPLICATIONS)[keyof typeof APPLICATIONS];
 
 export const COOKIE_NAMES = {
   authSession: "auth_sid",
+  adminSession: "cp_sid",
   appA: "app_a_sid",
   appB: "app_b_sid",
 } as const;

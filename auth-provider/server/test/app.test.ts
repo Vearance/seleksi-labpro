@@ -12,6 +12,8 @@ const testConfig: Env = {
   AUTH_SERVER_COOKIE_SECRET: "test-secret-at-least-32-characters-long!!",
   AUTH_SERVER_PUBLIC_URL: "http://localhost:3000",
   AUTH_SERVER_INTERNAL_URL: "http://auth-server:3000",
+  DATABASE_URL: "postgresql://sso:password@localhost:5432/sso_primary",
+  ADMIN_SESSION_TTL_SECONDS: 3600,
 };
 
 describe("auth-server", () => {

@@ -2,10 +2,14 @@ import { randomUUID } from "node:crypto";
 import Fastify, { type FastifyInstance } from "fastify";
 import cookie from "@fastify/cookie";
 import type { Env } from "./config.js";
+import "./types.js";
 import { buildLoggerConfig } from "./logger.js";
+import dbPlugin from "./plugins/db.js";
 import { errorHandler } from "./plugins/error-handler.js";
 import { notFoundHandler } from "./plugins/not-found.js";
 import { healthRoutes } from "./routes/health.js";
+import { adminLoginRoutes } from "./routes/admin/login.js";
+import { adminMeRoutes } from "./routes/admin/me.js";
 
 export interface BuildServerOptions {
   config: Env;
@@ -34,10 +38,15 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
     forceCloseConnections: "idle",
   });
 
+  server.decorate("config", config);
+
   server.register(cookie, { secret: config.AUTH_SERVER_COOKIE_SECRET });
+  server.register(dbPlugin);
   server.register(healthRoutes);
 
-  // plugins: error handler, not found handler
+  server.register(adminLoginRoutes, { prefix: "/admin" });
+  server.register(adminMeRoutes, { prefix: "/admin" });
+
   server.setErrorHandler(errorHandler);
   server.setNotFoundHandler(notFoundHandler);
 
