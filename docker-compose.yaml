@@ -105,9 +105,17 @@ services:
     restart: unless-stopped
 
   control-panel:
-    image: node:22-alpine
+    build:
+      context: .
+      dockerfile: auth-provider/control-panel/Dockerfile
     container_name: sso-control-panel
-    command: ["tail", "-f", "/dev/null"]
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      CONTROL_PANEL_HOST: 0.0.0.0
+      CONTROL_PANEL_PORT: ${CONTROL_PANEL_PORT:-3001}
+      CONTROL_PANEL_PUBLIC_URL: ${CONTROL_PANEL_PUBLIC_URL:-http://localhost:3001}
+      AUTH_SERVER_INTERNAL_URL: ${AUTH_SERVER_INTERNAL_URL:-http://auth-server:3000}
     ports:
       - "${CONTROL_PANEL_PORT:-3001}:3001"
     depends_on:

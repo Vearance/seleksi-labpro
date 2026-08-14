@@ -27,6 +27,7 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
   server.register(httpProxy, {
     upstream: config.AUTH_SERVER_INTERNAL_URL,
     prefix: "/admin",
+    rewritePrefix: "/admin",
     http2: false,
   });
 

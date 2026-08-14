@@ -19,13 +19,10 @@ RUN pnpm install --frozen-lockfile
 # Copy the rest of the source.
 COPY . .
 
-# Build the packages the server needs (db/db-local for startup migrations).
+# Build shared + control-panel (vite builds the React SPA, tsc builds the server).
 RUN pnpm --filter @sso/shared build \
-  && pnpm --filter @sso/db build \
-  && pnpm --filter @sso/db-local build \
-  && pnpm --filter @sso/auth-server build
+  && pnpm --filter @sso/control-panel build
 
-EXPOSE 3000
+EXPOSE 3001
 
-# Apply primary-DB migrations + seed, then start the server.
-CMD ["sh", "-c", "pnpm --filter @sso/db db:migrate:deploy && pnpm --filter @sso/db db:seed && node auth-provider/server/dist/server.js"]
+CMD ["node", "auth-provider/control-panel/dist/server.js"]
