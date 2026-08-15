@@ -1,7 +1,7 @@
 import { useEffect, useState, type SubmitEvent } from "react";
 import { createUser, listUsers, updateUser, type User } from "../api";
 
-export default function UsersPage() {
+export default function UsersPage({ onOpenUser }: { onOpenUser: (user: User) => void }) {
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -74,6 +74,7 @@ export default function UsersPage() {
                 <button onClick={() => handleToggle(user)}>
                   {user.status === "ACTIVE" ? "Deactivate" : "Activate"}
                 </button>
+                <button onClick={() => onOpenUser(user)}>Groups</button>
               </td>
             </tr>
           ))}

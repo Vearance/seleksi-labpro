@@ -1,6 +1,8 @@
 import { useEffect, useState, type SubmitEvent } from "react";
-import { getAdmin, login, type AdminUser } from "./api";
+import { getAdmin, login, type AdminUser, type User } from "./api";
 import UsersPage from "./pages/UsersPage";
+import GroupsPage from "./pages/GroupsPage";
+import UserDetailPage from "./pages/UserDetailPage";
 
 function LoginForm({ onLogin }: { onLogin: (admin: AdminUser) => void }) {
   const [email, setEmail] = useState("");
@@ -57,29 +59,42 @@ function LoginForm({ onLogin }: { onLogin: (admin: AdminUser) => void }) {
   );
 }
 
+type Page = "home" | "users" | "groups";
+
 function Shell({ admin }: { admin: AdminUser }) {
-  const [page, setPage] = useState<"home" | "users">("home");
+  const [page, setPage] = useState<Page>("home");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  function navigate(next: Page) {
+    setSelectedUser(null);
+    setPage(next);
+  }
 
   return (
     <div className="dashboard">
       <header>
         <span className="brand">SSO Control Panel</span>
         <nav>
-          <button onClick={() => setPage("home")}>Home</button>
-          <button onClick={() => setPage("users")}>Users</button>
+          <button onClick={() => navigate("home")}>Home</button>
+          <button onClick={() => navigate("users")}>Users</button>
+          <button onClick={() => navigate("groups")}>Groups</button>
         </nav>
         <span className="whoami">
           Hello, <strong>{admin.name}</strong>
         </span>
       </header>
       <main>
-        {page === "home" ? (
+        {selectedUser ? (
+          <UserDetailPage user={selectedUser} onBack={() => setSelectedUser(null)} />
+        ) : page === "users" ? (
+          <UsersPage onOpenUser={setSelectedUser} />
+        ) : page === "groups" ? (
+          <GroupsPage />
+        ) : (
           <>
             <h2>Welcome</h2>
             <p>You are signed in as {admin.email}.</p>
           </>
-        ) : (
-          <UsersPage />
         )}
       </main>
     </div>

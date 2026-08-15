@@ -1,7 +1,8 @@
-import type { AdminUser, UserStatus, UserSummary } from "@sso/shared";
+import type { AdminUser, GroupSummary, UserStatus, UserSummary } from "@sso/shared";
 
-export type { AdminUser, UserStatus, UserSummary };
+export type { AdminUser, GroupSummary, UserStatus, UserSummary };
 export type User = UserSummary;
+export type Group = GroupSummary;
 
 export async function login(email: string, password: string): Promise<Response> {
   return fetch("/admin/login", {
@@ -64,4 +65,53 @@ export async function updateUser(
   });
   if (!res.ok) throw await parseError(res);
   return res.json();
+}
+
+export async function listGroups(): Promise<Group[]> {
+  const res = await fetch("/admin/groups");
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function createGroup(input: { name: string; description?: string }): Promise<Group> {
+  const res = await fetch("/admin/groups", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function updateGroup(
+  id: string,
+  input: { name?: string; description?: string },
+): Promise<Group> {
+  const res = await fetch(`/admin/groups/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function listUserGroups(userId: string): Promise<Group[]> {
+  const res = await fetch(`/admin/users/${userId}/groups`);
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function addUserToGroup(userId: string, groupId: string): Promise<void> {
+  const res = await fetch(`/admin/users/${userId}/groups`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ groupId }),
+  });
+  if (!res.ok) throw await parseError(res);
+}
+
+export async function removeUserFromGroup(userId: string, groupId: string): Promise<void> {
+  const res = await fetch(`/admin/users/${userId}/groups/${groupId}`, { method: "DELETE" });
+  if (!res.ok) throw await parseError(res);
 }

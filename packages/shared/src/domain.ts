@@ -41,3 +41,11 @@ export interface UserSummary {
   status: UserStatus;
   createdAt: string;
 }
+
+/** Public (safe) view of a group. `createdAt` is an ISO-8601 string. */
+export interface GroupSummary {
+  id: string;
+  name: string;
+  description: string | null;
+  createdAt: string;
+}
