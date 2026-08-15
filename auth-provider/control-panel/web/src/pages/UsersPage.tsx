@@ -1,5 +1,5 @@
 import { useEffect, useState, type SubmitEvent } from "react";
-import { createUser, deleteUser, listUsers, updateUser, type User } from "../api";
+import { createUser, listUsers, updateUser, type User } from "../api";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -40,12 +40,6 @@ export default function UsersPage() {
     await refresh();
   }
 
-  async function handleDelete(user: User) {
-    if (!confirm(`Delete ${user.email}?`)) return;
-    await deleteUser(user.id);
-    await refresh();
-  }
-
   return (
     <section>
       <h2>Users</h2>
@@ -79,9 +73,6 @@ export default function UsersPage() {
               <td>
                 <button onClick={() => handleToggle(user)}>
                   {user.status === "ACTIVE" ? "Deactivate" : "Activate"}
-                </button>
-                <button className="danger" onClick={() => handleDelete(user)}>
-                  Delete
                 </button>
               </td>
             </tr>

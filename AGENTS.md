@@ -116,7 +116,9 @@ Docker Compose services (8): `postgres-primary`, `postgres-local`, `rabbitmq`,
 - **RabbitMQ** with DLQ; exponential backoff + jitter; at-least-once delivery
 - **Idempotency:** apps dedupe via `processed_events.event_id`
 - **Internal auth:** HMAC-SHA256 shared secret + timestamp header on `/internal/logout`
-- **Soft-delete** (status + deleted_at) for auditability
+- **Hard delete / deactivate-only** (no `deleted_at` tombstone) — users are deactivated via
+  `status`; spec tables have no `deleted_at` and F02 only requires activate/deactivate, so
+  this avoids unique + soft-delete conflicts
 - **Distinct cookie names** per service: `auth_sid`, `app_a_sid`, `app_b_sid`
 - Passwords argon2id; all secrets via env only (never in code or commits)
 

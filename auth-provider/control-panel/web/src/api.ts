@@ -65,8 +65,3 @@ export async function updateUser(
   if (!res.ok) throw await parseError(res);
   return res.json();
 }
-
-export async function deleteUser(id: string): Promise<void> {
-  const res = await fetch(`/admin/users/${id}`, { method: "DELETE" });
-  if (!res.ok) throw await parseError(res);
-}

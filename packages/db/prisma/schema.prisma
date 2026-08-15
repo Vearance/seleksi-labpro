@@ -74,7 +74,6 @@ model User {
   lastLoginAt   DateTime?  @map("last_login_at")
   createdAt     DateTime   @default(now()) @map("created_at")
   updatedAt     DateTime   @updatedAt @map("updated_at")
-  deletedAt     DateTime?  @map("deleted_at")
 
   groups           UserGroup[]
   sessions         SsoSession[]
@@ -93,7 +92,6 @@ model Group {
   description String?
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
-  deletedAt   DateTime? @map("deleted_at")
 
   users  UserGroup[]
   policy ApplicationGroupPolicy[]
@@ -126,7 +124,6 @@ model Application {
   status                AppStatus @default(ACTIVE)
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
-  deletedAt             DateTime? @map("deleted_at")
 
   redirectUris ApplicationRedirectUri[]
   policies     ApplicationGroupPolicy[]

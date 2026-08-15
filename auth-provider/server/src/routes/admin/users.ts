@@ -36,10 +36,4 @@ export async function adminUsersRoutes(server: FastifyInstance): Promise<void> {
     const body = request.body as userService.UpdateUserInput;
     return userService.updateUser(server.db, id, body);
   });
-
-  server.delete("/users/:id", { preHandler: requireAdmin }, async (request, reply) => {
-    const { id } = request.params as { id: string };
-    await userService.softDeleteUser(server.db, id);
-    reply.status(204);
-  });
 }

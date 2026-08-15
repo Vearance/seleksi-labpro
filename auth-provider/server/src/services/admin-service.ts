@@ -15,7 +15,7 @@ export async function authenticateAdmin(
   const passwordValid = await verifyPassword(user.passwordHash, password);
   if (!passwordValid) return null;
 
-  if (user.status !== "ACTIVE" || user.deletedAt !== null) return null;
+  if (user.status !== "ACTIVE") return null;
 
   const membership = await db.userGroup.findFirst({
     where: { userId: user.id, group: { name: "admin" } },
@@ -28,7 +28,7 @@ export async function authenticateAdmin(
 /** True only if the user is active and a member of the "admin" group. */
 export async function isAdmin(db: PrismaClient, userId: string): Promise<boolean> {
   const user = await db.user.findUnique({ where: { id: userId } });
-  if (!user || user.status !== "ACTIVE" || user.deletedAt !== null) return false;
+  if (!user || user.status !== "ACTIVE") return false;
 
   const membership = await db.userGroup.findFirst({
     where: { userId: user.id, group: { name: "admin" } },

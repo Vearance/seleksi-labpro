@@ -24,7 +24,6 @@ function toSummary(user: SafeUserRow): UserSummary {
 
 export async function listUsers(db: PrismaClient): Promise<UserSummary[]> {
   const users = await db.user.findMany({
-    where: { deletedAt: null },
     select: SAFE_USER,
     orderBy: { createdAt: "desc" },
   });
@@ -78,11 +77,4 @@ export async function updateUser(db: PrismaClient, id: string, input: UpdateUser
     select: SAFE_USER,
   });
   return toSummary(user as SafeUserRow);
-}
-
-export async function softDeleteUser(db: PrismaClient, id: string): Promise<void> {
-  await db.user.update({
-    where: { id },
-    data: { deletedAt: new Date() },
-  });
 }

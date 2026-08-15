@@ -23,7 +23,7 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
     forceCloseConnections: "idle",
   });
 
-  // Thin proxy: forward /admin/* to the auth-server (avoids browser CORS).
+  // Thin proxy: for all /admin/* route, forward to the auth-server
   server.register(httpProxy, {
     upstream: config.AUTH_SERVER_INTERNAL_URL,
     prefix: "/admin",
