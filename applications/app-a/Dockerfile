@@ -14,6 +14,7 @@ COPY packages/db-local/package.json ./packages/db-local/
 COPY auth-provider/server/package.json ./auth-provider/server/
 COPY auth-provider/control-panel/package.json ./auth-provider/control-panel/
 COPY applications/app-a/package.json ./applications/app-a/
+COPY applications/app-b/package.json ./applications/app-b/
 
 RUN pnpm install --frozen-lockfile
 

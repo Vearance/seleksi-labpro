@@ -165,9 +165,25 @@ services:
     restart: unless-stopped
 
   app-b:
-    image: node:22-alpine
+    build:
+      context: .
+      dockerfile: applications/app-b/Dockerfile
     container_name: sso-app-b
-    command: ["tail", "-f", "/dev/null"]
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      APP_B_HOST: 0.0.0.0
+      APP_B_PORT: ${APP_B_PORT:-4002}
+      APP_B_PUBLIC_URL: ${APP_B_PUBLIC_URL:-http://localhost:4002}
+      APP_B_INTERNAL_URL: ${APP_B_INTERNAL_URL:-http://app-b:4002}
+      AUTH_SERVER_PUBLIC_URL: ${AUTH_SERVER_PUBLIC_URL:-http://localhost:3000}
+      AUTH_SERVER_INTERNAL_URL: ${AUTH_SERVER_INTERNAL_URL:-http://auth-server:3000}
+      APP_B_CLIENT_ID: ${APP_B_CLIENT_ID:-app-b-client}
+      APP_B_CLIENT_SECRET: ${APP_B_CLIENT_SECRET:-change-me-app-b-secret}
+      APP_B_SESSION_TTL_SECONDS: ${APP_B_SESSION_TTL_SECONDS:-28800}
+      INTERNAL_HMAC_SECRET: ${INTERNAL_HMAC_SECRET:-change-me-internal-hmac-secret}
+      INTERNAL_HMAC_TTL_SECONDS: ${INTERNAL_HMAC_TTL_SECONDS:-300}
+      DATABASE_URL_LOCAL: postgresql://${POSTGRES_LOCAL_USER:-sso}:${POSTGRES_LOCAL_PASSWORD:-change-me}@postgres-local:5432/${POSTGRES_LOCAL_DB:-sso_local}
     ports:
       - "${APP_B_PORT:-4002}:4002"
     depends_on:

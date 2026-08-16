@@ -13,7 +13,6 @@ COPY packages/db/package.json ./packages/db/
 COPY packages/db-local/package.json ./packages/db-local/
 COPY auth-provider/server/package.json ./auth-provider/server/
 COPY auth-provider/control-panel/package.json ./auth-provider/control-panel/
-COPY applications/app-a/package.json ./applications/app-a/
 COPY applications/app-b/package.json ./applications/app-b/
 
 RUN pnpm install --frozen-lockfile
@@ -21,13 +20,12 @@ RUN pnpm install --frozen-lockfile
 # Copy the rest of the source.
 COPY . .
 
-# Build the packages the server needs (db/db-local for startup migrations).
+# Build shared + db-local + app-a (vite builds the React SPA, tsc the server).
 RUN pnpm --filter @sso/shared build \
-  && pnpm --filter @sso/db build \
   && pnpm --filter @sso/db-local build \
-  && pnpm --filter @sso/auth-server build
+  && pnpm --filter @sso/app-b build
 
-EXPOSE 3000
+EXPOSE 4002
 
-# Apply primary-DB migrations + seed, then start the server.
-CMD ["sh", "-c", "pnpm --filter @sso/db db:migrate:deploy && pnpm --filter @sso/db db:seed && node auth-provider/server/dist/server.js"]
+# Apply local-DB migrations, then start the server.
+CMD ["sh", "-c", "pnpm --filter @sso/db-local db:migrate:deploy && node applications/app-b/dist/server.js"]
