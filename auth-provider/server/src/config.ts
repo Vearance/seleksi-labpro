@@ -12,6 +12,7 @@ export const envSchema = z.object({
   AUTH_SERVER_COOKIE_SECRET: z.string().min(16),
   AUTH_SERVER_PUBLIC_URL: z.string().url().default("http://localhost:3000"),
   AUTH_SERVER_INTERNAL_URL: z.string().url().default("http://auth-server:3000"),
+  AUTH_SERVER_SESSION_TTL_MINUTES: z.coerce.number().int().positive().default(480),
   DATABASE_URL: z.string().url(),
   ADMIN_SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
 });
