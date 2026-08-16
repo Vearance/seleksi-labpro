@@ -32,6 +32,48 @@ export function verifyPkce(challenge: string, verifier: string, method: string):
   return timingSafeEqual(a, b);
 }
 
+// Internal service-to-service auth (HMAC-SHA256), used by the sync worker -> relying apps on `/internal/logout`. 
+
+export interface InternalAuthFields {
+  eventId: string;
+  eventType: string;
+  userId: string;
+  centralSessionId?: string | null;
+  reason?: string | null;
+}
+
+/** Stable canonical string signed by both the worker and the relying app. */
+export function buildInternalAuthCanonical(fields: InternalAuthFields): string {
+  return [
+    fields.eventId,
+    fields.eventType,
+    fields.userId,
+    fields.centralSessionId ?? "",
+    fields.reason ?? "",
+  ].join(":");
+}
+
+/** Signs an internal request: HMAC-SHA256 over `<timestamp>.<canonical>`. */
+export function signInternalAuth(
+  secret: string,
+  timestamp: string,
+  fields: InternalAuthFields,
+): string {
+  const canonical = buildInternalAuthCanonical(fields);
+  return createHmac("sha256", secret).update(`${timestamp}.${canonical}`).digest("hex");
+}
+
+/** Constant-time verification of an internal request signature. */
+export function verifyInternalAuth(
+  secret: string,
+  timestamp: string,
+  fields: InternalAuthFields,
+  signature: string,
+): boolean {
+  const expected = signInternalAuth(secret, timestamp, fields);
+  return timingSafeEqualHex(expected, signature);
+}
+
 /**
  * Constant-time comparison of two hex-encoded digests. Returns false early
  * when lengths differ (public information) without leaking content.

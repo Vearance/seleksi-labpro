@@ -19,6 +19,8 @@ export const envSchema = z.object({
   APP_A_CLIENT_ID: z.string().min(1),
   APP_A_CLIENT_SECRET: z.string().min(1),
   APP_A_SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(28800),
+  INTERNAL_HMAC_SECRET: z.string().min(16),
+  INTERNAL_HMAC_TTL_SECONDS: z.coerce.number().int().positive().default(300),
 });
 
 export type Env = z.infer<typeof envSchema>;

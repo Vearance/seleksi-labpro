@@ -69,3 +69,4 @@ session (idempotent).
 | GET | `/login` | Generate PKCE + `state`, then redirect to the Auth Provider authorize endpoint |
 | GET | `/callback` | Validate state, exchange code, fetch userinfo, create local session + profile cache, redirect home |
 | GET | `/health` | Liveness probe |
+| POST | `/internal/logout` | Revoke local sessions for an event (HMAC-signed, idempotent) |

@@ -152,6 +152,8 @@ services:
       APP_A_CLIENT_ID: ${APP_A_CLIENT_ID:-app-a-client}
       APP_A_CLIENT_SECRET: ${APP_A_CLIENT_SECRET:-change-me-app-a-secret}
       APP_A_SESSION_TTL_SECONDS: ${APP_A_SESSION_TTL_SECONDS:-28800}
+      INTERNAL_HMAC_SECRET: ${INTERNAL_HMAC_SECRET:-change-me-internal-hmac-secret}
+      INTERNAL_HMAC_TTL_SECONDS: ${INTERNAL_HMAC_TTL_SECONDS:-300}
       DATABASE_URL_LOCAL: postgresql://${POSTGRES_LOCAL_USER:-sso}:${POSTGRES_LOCAL_PASSWORD:-change-me}@postgres-local:5432/${POSTGRES_LOCAL_DB:-sso_local}
     ports:
       - "${APP_A_PORT:-4001}:4001"
