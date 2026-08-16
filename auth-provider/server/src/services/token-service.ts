@@ -137,6 +137,7 @@ export async function exchangeAuthorizationCode(
 
 export interface UserInfo {
   sub: string;
+  sid: string;
   name: string;
   email: string;
   groups: string[];
@@ -163,6 +164,7 @@ export async function getUserInfo(db: PrismaClient, rawToken: string): Promise<U
 
   return {
     sub: token.userId,
+    sid: token.ssoSessionId,
     name: token.user.name,
     email: token.user.email,
     groups: token.user.groups.map((membership) => membership.group.name).sort(),

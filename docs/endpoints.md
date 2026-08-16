@@ -46,6 +46,7 @@ Success (200):
 ```json
 {
   "sub": "<user id>",
+  "sid": "<central session id>",
   "name": "Alice",
   "email": "alice@example.com",
   "groups": ["employees"]
@@ -60,3 +61,11 @@ Revokes the central session identified by the `auth_sid` cookie (marking it
 `REVOKED` with reason `sso_logout`), writes an audit `logout` row, and clears
 the cookie. Returns `200 { "success": true }` even when there is no active
 session (idempotent).
+
+## App A (Phase 3)
+
+| Method | Path | Description |
+| :--- | :--- | :--- |
+| GET | `/login` | Generate PKCE + `state`, then redirect to the Auth Provider authorize endpoint |
+| GET | `/callback` | Validate state, exchange code, fetch userinfo, create local session + profile cache, redirect home |
+| GET | `/health` | Liveness probe |

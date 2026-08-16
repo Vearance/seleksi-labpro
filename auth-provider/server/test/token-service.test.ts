@@ -193,6 +193,7 @@ describe("getUserInfo", () => {
       accessToken: {
         findUnique: vi.fn(async () => ({
           userId: "user-id",
+          ssoSessionId: "session-id",
           status: "ACTIVE",
           revokedAt: null,
           expiresAt: future,
@@ -212,6 +213,7 @@ describe("getUserInfo", () => {
     const info = await getUserInfo(db, "raw-token");
     expect(info).toEqual({
       sub: "user-id",
+      sid: "session-id",
       name: "Alice",
       email: "alice@example.com",
       groups: ["contractors", "employees"],

@@ -59,3 +59,29 @@ model ProcessedEvent {
   @@id([applicationId, eventId])
   @@map("processed_events")
 }
+
+// OAuth State (persists the login-flow state + PKCE verifier until callback)
+
+model OAuthState {
+  id            String    @id @default(uuid()) @db.Uuid
+  applicationId String    @map("application_id")
+  state         String    @unique
+  codeVerifier  String    @map("code_verifier")
+  expiresAt     DateTime  @map("expires_at")
+  consumedAt    DateTime? @map("consumed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("oauth_states")
+}
+
+// Activity Log (per-app login-flow trace shown in the frontend Activity Log)
+
+model ActivityLog {
+  id            String   @id @default(uuid()) @db.Uuid
+  applicationId String   @map("application_id")
+  event         String   @map("event")
+  correlationId String?  @map("correlation_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("activity_logs")
+}

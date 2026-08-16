@@ -16,6 +16,9 @@ export const envSchema = z.object({
   AUTH_SERVER_PUBLIC_URL: z.string().url().default("http://localhost:3000"),
   AUTH_SERVER_INTERNAL_URL: z.string().url().default("http://auth-server:3000"),
   DATABASE_URL_LOCAL: z.string().url(),
+  APP_A_CLIENT_ID: z.string().min(1),
+  APP_A_CLIENT_SECRET: z.string().min(1),
+  APP_A_SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(28800),
 });
 
 export type Env = z.infer<typeof envSchema>;

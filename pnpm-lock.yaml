@@ -17,6 +17,9 @@ importers:
 
   applications/app-a:
     dependencies:
+      '@fastify/cookie':
+        specifier: ^11.0.1
+        version: 11.1.2
       '@fastify/static':
         specifier: ^8.1.0
         version: 8.3.0
@@ -72,6 +75,9 @@ importers:
       vite:
         specifier: ^5.4.0
         version: 5.4.21(@types/node@22.20.1)
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)
 
   auth-provider/control-panel:
     dependencies:

@@ -2,6 +2,7 @@ import path from "node:path";
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import Fastify, { type FastifyInstance } from "fastify";
+import cookie from "@fastify/cookie";
 import fastifyStatic from "@fastify/static";
 import type { Env } from "./config.js";
 import "./types.js";
@@ -10,6 +11,8 @@ import dbPlugin from "./plugins/db.js";
 import { errorHandler } from "./plugins/error-handler.js";
 import { notFoundHandler } from "./plugins/not-found.js";
 import { healthRoutes } from "./routes/health.js";
+import { loginRoutes } from "./routes/login.js";
+import { callbackRoutes } from "./routes/callback.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,8 +37,11 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
 
   server.decorate("config", config);
 
+  server.register(cookie);
   server.register(dbPlugin);
   server.register(healthRoutes);
+  server.register(loginRoutes);
+  server.register(callbackRoutes);
 
   // Serve the built React SPA (web/dist); skipped during backend-only dev.
   const staticRoot = path.resolve(__dirname, "../web/dist");
