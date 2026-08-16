@@ -136,9 +136,20 @@ services:
   # ── Relying Applications ────────────────────────────────────────────
 
   app-a:
-    image: node:22-alpine
+    build:
+      context: .
+      dockerfile: applications/app-a/Dockerfile
     container_name: sso-app-a
-    command: ["tail", "-f", "/dev/null"]
+    environment:
+      NODE_ENV: production
+      LOG_LEVEL: info
+      APP_A_HOST: 0.0.0.0
+      APP_A_PORT: ${APP_A_PORT:-4001}
+      APP_A_PUBLIC_URL: ${APP_A_PUBLIC_URL:-http://localhost:4001}
+      APP_A_INTERNAL_URL: ${APP_A_INTERNAL_URL:-http://app-a:4001}
+      AUTH_SERVER_PUBLIC_URL: ${AUTH_SERVER_PUBLIC_URL:-http://localhost:3000}
+      AUTH_SERVER_INTERNAL_URL: ${AUTH_SERVER_INTERNAL_URL:-http://auth-server:3000}
+      DATABASE_URL_LOCAL: postgresql://${POSTGRES_LOCAL_USER:-sso}:${POSTGRES_LOCAL_PASSWORD:-change-me}@postgres-local:5432/${POSTGRES_LOCAL_DB:-sso_local}
     ports:
       - "${APP_A_PORT:-4001}:4001"
     depends_on:
