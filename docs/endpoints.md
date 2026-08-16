@@ -9,6 +9,7 @@ Living register of HTTP endpoints. Standard error format for non-OAuth routes:
 | :--- | :--- | :--- | :--- |
 | POST | `/oauth/token` | Exchange an authorization code for an access token | OAuth 2.0 error format `{ error, error_description }` |
 | GET | `/userinfo` | Return profile for a Bearer access token | Returns `sub`, `name`, `email`, `groups` |
+| POST | `/logout` | Revoke the central session and clear the `auth_sid` cookie | Idempotent |
 
 ### `POST /oauth/token`
 
@@ -52,3 +53,10 @@ Success (200):
 ```
 
 Missing/invalid token returns `401` with `WWW-Authenticate: Bearer`.
+
+### `POST /logout`
+
+Revokes the central session identified by the `auth_sid` cookie (marking it
+`REVOKED` with reason `sso_logout`), writes an audit `logout` row, and clears
+the cookie. Returns `200 { "success": true }` even when there is no active
+session (idempotent).

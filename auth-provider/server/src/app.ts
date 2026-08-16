@@ -9,6 +9,7 @@ import { errorHandler } from "./plugins/error-handler.js";
 import { notFoundHandler } from "./plugins/not-found.js";
 import { healthRoutes } from "./routes/health.js";
 import { loginRoutes } from "./routes/login.js";
+import { logoutRoutes } from "./routes/logout.js";
 import { oauthAuthorizeRoutes } from "./routes/oauth/authorize.js";
 import { oauthTokenRoutes } from "./routes/oauth/token.js";
 import { userinfoRoutes } from "./routes/userinfo.js";
@@ -53,6 +54,7 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
   server.register(dbPlugin);
   server.register(healthRoutes);
   server.register(loginRoutes);
+  server.register(logoutRoutes);
   server.register(oauthAuthorizeRoutes, { prefix: "/oauth" });
   server.register(oauthTokenRoutes, { prefix: "/oauth" });
   server.register(userinfoRoutes);
