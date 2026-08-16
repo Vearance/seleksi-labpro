@@ -2,7 +2,7 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypt
 import { hash as argon2idHash, verify as argon2idVerify } from "@node-rs/argon2";
 
 /**
- * Generates a URL-safe random token (32 bytes by default → 43 base64url chars)
+ * Generates a URL-safe random token (32 bytes by default -> 43 base64url chars)
  */
 export function randomToken(byteLength = 32): string {
   return randomBytes(byteLength).toString("base64url");
@@ -11,6 +11,25 @@ export function randomToken(byteLength = 32): string {
 /** SHA-256 hex digest of a string or buffer. Used to hash tokens at rest. */
 export function sha256Hex(input: string | Buffer): string {
   return createHash("sha256").update(input).digest("hex");
+}
+
+/** SHA-256 digest base64url-encoded (used by PKCE `S256`). */
+export function sha256Base64Url(input: string): string {
+  return createHash("sha256").update(input).digest("base64url");
+}
+
+/**
+ * Verifies a PKCE `code_verifier` against the stored `code_challenge`.
+ * - `S256`: challenge === base64url(sha256(verifier))
+ * - `plain`: challenge === verifier
+ * Comparison is constant-time so a partial match does not leak content.
+ */
+export function verifyPkce(challenge: string, verifier: string, method: string): boolean {
+  const expected = method === "S256" ? sha256Base64Url(verifier) : verifier;
+  const a = Buffer.from(challenge);
+  const b = Buffer.from(expected);
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(a, b);
 }
 
 /**

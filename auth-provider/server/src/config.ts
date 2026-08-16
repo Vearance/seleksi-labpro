@@ -15,6 +15,7 @@ export const envSchema = z.object({
   AUTH_SERVER_SESSION_TTL_MINUTES: z.coerce.number().int().positive().default(480),
   DATABASE_URL: z.string().url(),
   ADMIN_SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
+  ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
 });
 
 export type Env = z.infer<typeof envSchema>;

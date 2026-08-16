@@ -10,6 +10,8 @@ import { notFoundHandler } from "./plugins/not-found.js";
 import { healthRoutes } from "./routes/health.js";
 import { loginRoutes } from "./routes/login.js";
 import { oauthAuthorizeRoutes } from "./routes/oauth/authorize.js";
+import { oauthTokenRoutes } from "./routes/oauth/token.js";
+import { userinfoRoutes } from "./routes/userinfo.js";
 import { adminLoginRoutes } from "./routes/admin/login.js";
 import { adminMeRoutes } from "./routes/admin/me.js";
 import { adminUsersRoutes } from "./routes/admin/users.js";
@@ -52,6 +54,8 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
   server.register(healthRoutes);
   server.register(loginRoutes);
   server.register(oauthAuthorizeRoutes, { prefix: "/oauth" });
+  server.register(oauthTokenRoutes, { prefix: "/oauth" });
+  server.register(userinfoRoutes);
 
   server.register(adminLoginRoutes, { prefix: "/admin" });
   server.register(adminMeRoutes, { prefix: "/admin" });
