@@ -56,6 +56,20 @@ input {
   font-size: 15px;
 }
 
+select,
+textarea {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+
 button {
   margin-top: 6px;
   padding: 11px;
@@ -172,4 +186,20 @@ td button {
 
 td button.danger {
   background: #dc2626;
+}
+
+button.danger {
+  background: #dc2626;
+}
+
+.secret-box {
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  background: #fffbeb;
+}
+
+.secret-box code {
+  word-break: break-all;
 }

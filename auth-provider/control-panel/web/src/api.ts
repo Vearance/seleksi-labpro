@@ -1,8 +1,9 @@
-import type { AdminUser, GroupSummary, UserStatus, UserSummary } from "@sso/shared";
+import type { AdminUser, ApplicationSummary, GroupSummary, UserStatus, UserSummary } from "@sso/shared";
 
-export type { AdminUser, GroupSummary, UserStatus, UserSummary };
+export type { AdminUser, ApplicationSummary, GroupSummary, UserStatus, UserSummary };
 export type User = UserSummary;
 export type Group = GroupSummary;
+export type Application = ApplicationSummary;
 
 export async function login(email: string, password: string): Promise<Response> {
   return fetch("/admin/login", {
@@ -114,4 +115,50 @@ export async function addUserToGroup(userId: string, groupId: string): Promise<v
 export async function removeUserFromGroup(userId: string, groupId: string): Promise<void> {
   const res = await fetch(`/admin/users/${userId}/groups/${groupId}`, { method: "DELETE" });
   if (!res.ok) throw await parseError(res);
+}
+
+export interface CreatedApplication {
+  application: Application;
+  clientSecret: string;
+}
+
+export async function listApplications(): Promise<Application[]> {
+  const res = await fetch("/admin/applications");
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function createApplication(input: {
+  name: string;
+  launchUrl?: string | null;
+  logoutNotificationUrl: string;
+  redirectUris: string[];
+  status?: "ACTIVE" | "INACTIVE";
+}): Promise<CreatedApplication> {
+  const res = await fetch("/admin/applications", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function updateApplication(
+  id: string,
+  input: {
+    name?: string;
+    launchUrl?: string | null;
+    logoutNotificationUrl?: string;
+    redirectUris?: string[];
+    status?: "ACTIVE" | "INACTIVE";
+  },
+): Promise<Application> {
+  const res = await fetch(`/admin/applications/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await parseError(res);
+  return res.json();
 }

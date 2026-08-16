@@ -3,6 +3,7 @@ import { getAdmin, login, type AdminUser, type User } from "./api";
 import UsersPage from "./pages/UsersPage";
 import GroupsPage from "./pages/GroupsPage";
 import UserDetailPage from "./pages/UserDetailPage";
+import ApplicationsPage from "./pages/ApplicationsPage";
 
 function LoginForm({ onLogin }: { onLogin: (admin: AdminUser) => void }) {
   const [email, setEmail] = useState("");
@@ -59,7 +60,7 @@ function LoginForm({ onLogin }: { onLogin: (admin: AdminUser) => void }) {
   );
 }
 
-type Page = "home" | "users" | "groups";
+type Page = "home" | "users" | "groups" | "applications";
 
 function Shell({ admin }: { admin: AdminUser }) {
   const [page, setPage] = useState<Page>("home");
@@ -78,6 +79,7 @@ function Shell({ admin }: { admin: AdminUser }) {
           <button onClick={() => navigate("home")}>Home</button>
           <button onClick={() => navigate("users")}>Users</button>
           <button onClick={() => navigate("groups")}>Groups</button>
+          <button onClick={() => navigate("applications")}>Applications</button>
         </nav>
         <span className="whoami">
           Hello, <strong>{admin.name}</strong>
@@ -90,6 +92,8 @@ function Shell({ admin }: { admin: AdminUser }) {
           <UsersPage onOpenUser={setSelectedUser} />
         ) : page === "groups" ? (
           <GroupsPage />
+        ) : page === "applications" ? (
+          <ApplicationsPage />
         ) : (
           <>
             <h2>Welcome</h2>

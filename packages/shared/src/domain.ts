@@ -49,3 +49,18 @@ export interface GroupSummary {
   description: string | null;
   createdAt: string;
 }
+
+export const APP_STATUSES = ["ACTIVE", "INACTIVE"] as const;
+export type AppStatus = (typeof APP_STATUSES)[number];
+
+/** Public (safe) view of an application. `createdAt` is an ISO-8601 string. */
+export interface ApplicationSummary {
+  id: string;
+  clientId: string;
+  name: string;
+  launchUrl: string | null;
+  logoutNotificationUrl: string;
+  status: AppStatus;
+  redirectUris: string[];
+  createdAt: string;
+}
