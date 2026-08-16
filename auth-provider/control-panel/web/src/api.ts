@@ -1,9 +1,10 @@
-import type { AdminUser, ApplicationSummary, GroupSummary, UserStatus, UserSummary } from "@sso/shared";
+import type { AdminUser, ApplicationSummary, GroupSummary, PolicySummary, UserStatus, UserSummary } from "@sso/shared";
 
-export type { AdminUser, ApplicationSummary, GroupSummary, UserStatus, UserSummary };
+export type { AdminUser, ApplicationSummary, GroupSummary, PolicySummary, UserStatus, UserSummary };
 export type User = UserSummary;
 export type Group = GroupSummary;
 export type Application = ApplicationSummary;
+export type Policy = PolicySummary;
 
 export async function login(email: string, password: string): Promise<Response> {
   return fetch("/admin/login", {
@@ -161,4 +162,27 @@ export async function updateApplication(
   });
   if (!res.ok) throw await parseError(res);
   return res.json();
+}
+
+export async function listPolicies(applicationId: string): Promise<Policy[]> {
+  const res = await fetch(`/admin/applications/${applicationId}/policies`);
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function addPolicy(applicationId: string, groupId: string): Promise<Policy> {
+  const res = await fetch(`/admin/applications/${applicationId}/policies`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ groupId }),
+  });
+  if (!res.ok) throw await parseError(res);
+  return res.json();
+}
+
+export async function removePolicy(applicationId: string, groupId: string): Promise<void> {
+  const res = await fetch(`/admin/applications/${applicationId}/policies/${groupId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw await parseError(res);
 }

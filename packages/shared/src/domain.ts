@@ -64,3 +64,16 @@ export interface ApplicationSummary {
   redirectUris: string[];
   createdAt: string;
 }
+
+export const ACCESS_DECISIONS = ["ALLOW", "DENY"] as const;
+export type AccessDecision = (typeof ACCESS_DECISIONS)[number];
+
+/** Public view of an application-group policy. */
+export interface PolicySummary {
+  id: string;
+  applicationId: string;
+  groupId: string;
+  groupName: string;
+  access: AccessDecision;
+  createdAt: string;
+}

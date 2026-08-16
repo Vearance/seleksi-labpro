@@ -14,6 +14,7 @@ import { adminUsersRoutes } from "./routes/admin/users.js";
 import { adminGroupsRoutes } from "./routes/admin/groups.js";
 import { adminMembershipRoutes } from "./routes/admin/memberships.js";
 import { adminApplicationsRoutes } from "./routes/admin/applications.js";
+import { adminPoliciesRoutes } from "./routes/admin/policies.js";
 
 export interface BuildServerOptions {
   config: Env;
@@ -54,6 +55,7 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
   server.register(adminGroupsRoutes, { prefix: "/admin" });
   server.register(adminMembershipRoutes, { prefix: "/admin" });
   server.register(adminApplicationsRoutes, { prefix: "/admin" });
+  server.register(adminPoliciesRoutes, { prefix: "/admin" });
 
   server.setErrorHandler(errorHandler);
   server.setNotFoundHandler(notFoundHandler);
