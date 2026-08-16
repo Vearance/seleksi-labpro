@@ -3,6 +3,7 @@ import { ApiError, COOKIE_NAMES } from "@sso/shared";
 import * as authService from "../services/auth-service.js";
 import * as sessionService from "../services/session-service.js";
 import * as auditService from "../services/audit-service.js";
+import { renderLoginPage } from "../login-page.js";
 
 const loginSchema = {
   body: {
@@ -16,6 +17,12 @@ const loginSchema = {
 } as const;
 
 export async function loginRoutes(server: FastifyInstance): Promise<void> {
+  server.get("/login", async (request, reply) => {
+    const { return_to: returnTo } = request.query as { return_to?: string };
+    const safeReturnTo = returnTo && returnTo.startsWith("/oauth/authorize") ? returnTo : "/";
+    return reply.type("text/html").send(renderLoginPage(safeReturnTo));
+  });
+
   server.post("/login", { schema: loginSchema }, async (request, reply) => {
     const { email, password } = request.body as { email: string; password: string };
     const ipAddress = request.ip;

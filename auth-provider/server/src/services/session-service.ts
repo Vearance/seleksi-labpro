@@ -43,7 +43,7 @@ export async function createSession(db: PrismaClient, input: CreateSessionInput)
 }
 
 /**
- * Central session validity rule (spec F02): user active AND session active
+ * Central session validity rule: user active AND session active
  * AND not expired AND not revoked.
  */
 export function isSessionValid(session: SessionLike, userStatus: UserStatus): boolean {
