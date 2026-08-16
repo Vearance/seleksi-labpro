@@ -96,7 +96,7 @@ export async function callbackRoutes(server: FastifyInstance): Promise<void> {
     }
 
     // Create the local session + refresh the profile cache.
-    const ttlSeconds = server.config.APP_A_SESSION_TTL_SECONDS;
+    const ttlSeconds = server.config.APP_B_SESSION_TTL_SECONDS;
     const { token } = await localSessionService.createLocalSession(server.db, {
       applicationId: APPLICATION_ID,
       externalUserId: userinfo.sub,
