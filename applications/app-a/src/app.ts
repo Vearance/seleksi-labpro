@@ -13,6 +13,7 @@ import { notFoundHandler } from "./plugins/not-found.js";
 import { healthRoutes } from "./routes/health.js";
 import { loginRoutes } from "./routes/login.js";
 import { callbackRoutes } from "./routes/callback.js";
+import { apiRoutes } from "./routes/api.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -42,6 +43,7 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
   server.register(healthRoutes);
   server.register(loginRoutes);
   server.register(callbackRoutes);
+  server.register(apiRoutes);
 
   // Serve the built React SPA (web/dist); skipped during backend-only dev.
   const staticRoot = path.resolve(__dirname, "../web/dist");

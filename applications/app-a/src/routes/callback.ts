@@ -42,7 +42,7 @@ export async function callbackRoutes(server: FastifyInstance): Promise<void> {
       return reply.type("text/html").send(renderErrorPage("Authorization code missing."));
     }
 
-    // Exchange the code server-to-server (never trust the browser).
+    // Exchange the code server-to-server
     let tokenRes: Response;
     try {
       tokenRes = await fetch(`${server.config.AUTH_SERVER_INTERNAL_URL}/oauth/token`, {

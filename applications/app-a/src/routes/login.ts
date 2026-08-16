@@ -7,8 +7,7 @@ const APPLICATION_ID = "app-a";
 
 export async function loginRoutes(server: FastifyInstance): Promise<void> {
   server.get("/login", async (request, reply) => {
-    // Generate a fresh PKCE pair + state, persist them, then redirect the
-    // browser to the Auth Provider's authorize endpoint.
+    // Generate a fresh PKCE pair + state, persist them, then redirect the browser to the Auth Provider's authorize endpoint.
     const codeVerifier = randomToken(32);
     const codeChallenge = sha256Base64Url(codeVerifier);
 

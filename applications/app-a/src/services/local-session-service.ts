@@ -69,3 +69,22 @@ export async function upsertProfileCache(
     },
   });
 }
+
+export interface LocalSessionLike {
+  status: "ACTIVE" | "EXPIRED" | "REVOKED";
+  expiresAt: Date;
+  revokedAt: Date | null;
+}
+
+/** Local session valid iff: active, not revoked, not expired. */
+export function isLocalSessionValid(session: LocalSessionLike): boolean {
+  if (session.status !== "ACTIVE") return false;
+  if (session.revokedAt !== null) return false;
+  if (session.expiresAt.getTime() <= Date.now()) return false;
+  return true;
+}
+
+/** Looks up a local session by its raw cookie token (hashed before lookup). */
+export async function getLocalSessionByToken(db: PrismaClient, token: string) {
+  return db.localSession.findUnique({ where: { sessionTokenHash: sha256Hex(token) } });
+}
