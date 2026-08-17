@@ -39,54 +39,58 @@ export async function loginRoutes(server: FastifyInstance): Promise<void> {
     return reply.type("text/html").send(renderLoginPage(safeReturnTo));
   });
 
-  server.post("/login", { schema: loginSchema }, async (request, reply) => {
-    const { email, password } = request.body as { email: string; password: string };
-    const ipAddress = request.ip;
-    const userAgent = request.headers["user-agent"];
+  server.post(
+    "/login",
+    { schema: loginSchema },
+    async (request, reply) => {
+      const { email, password } = request.body as { email: string; password: string };
+      const ipAddress = request.ip;
+      const userAgent = request.headers["user-agent"];
 
-    const result = await authService.verifyCredentials(server.db, email, password);
+      const result = await authService.verifyCredentials(server.db, email, password);
 
-    if (!result.ok) {
+      if (!result.ok) {
+        await auditService.writeAudit(server.db, {
+          eventType: "login_failed",
+          userId: result.user?.id ?? null,
+          result: "failed",
+          ipAddress,
+          userAgent,
+        });
+        throw new ApiError("Invalid credentials", { statusCode: 401, code: "UNAUTHORIZED" });
+      }
+
+      const ttlSeconds = server.config.AUTH_SERVER_SESSION_TTL_MINUTES * 60;
+      const { sessionId, token } = await sessionService.createSession(server.db, {
+        userId: result.user.id,
+        userAgent,
+        ipAddress,
+        ttlSeconds,
+      });
+
       await auditService.writeAudit(server.db, {
-        eventType: "login_failed",
-        userId: result.user?.id ?? null,
-        result: "failed",
+        eventType: "login_success",
+        userId: result.user.id,
+        sessionId,
+        result: "success",
         ipAddress,
         userAgent,
       });
-      throw new ApiError("Invalid credentials", { statusCode: 401, code: "UNAUTHORIZED" });
-    }
 
-    const ttlSeconds = server.config.AUTH_SERVER_SESSION_TTL_MINUTES * 60;
-    const { sessionId, token } = await sessionService.createSession(server.db, {
-      userId: result.user.id,
-      userAgent,
-      ipAddress,
-      ttlSeconds,
-    });
+      await server.db.user.update({
+        where: { id: result.user.id },
+        data: { lastLoginAt: new Date() },
+      });
 
-    await auditService.writeAudit(server.db, {
-      eventType: "login_success",
-      userId: result.user.id,
-      sessionId,
-      result: "success",
-      ipAddress,
-      userAgent,
-    });
+      reply.setCookie(COOKIE_NAMES.authSession, token, {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: ttlSeconds,
+        secure: server.config.NODE_ENV === "production",
+      });
 
-    await server.db.user.update({
-      where: { id: result.user.id },
-      data: { lastLoginAt: new Date() },
-    });
-
-    reply.setCookie(COOKIE_NAMES.authSession, token, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: ttlSeconds,
-      secure: server.config.NODE_ENV === "production",
-    });
-
-    return { user: { id: result.user.id, name: result.user.name, email: result.user.email } };
-  });
+      return { user: { id: result.user.id, name: result.user.name, email: result.user.email } };
+    },
+  );
 }

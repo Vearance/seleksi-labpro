@@ -62,11 +62,28 @@ Revokes the central session identified by the `auth_sid` cookie (marking it
 the cookie. Returns `200 { "success": true }` even when there is no active
 session (idempotent).
 
+## Health probes (B03)
+
+Liveness = the process responds at all (no dependency checks). Readiness =
+dependencies reachable; returns `200` `{ "status": "ok", "checks": {...} }` or
+`503` `{ "status": "degraded", "checks": {...} }` naming the failed component
+without sensitive internals.
+
+| Service | Liveness | Readiness | Checks |
+| :--- | :--- | :--- | :--- |
+| auth-server | `GET /health/live` | `GET /health/ready` | `database` (postgres-primary `SELECT 1`) |
+| app-a / app-b | `GET /health/live` | `GET /health/ready` | `database` (postgres-local `SELECT 1`) |
+| sync-worker | `GET :3002/health/live` | `GET :3002/health/ready` | `database` + `broker` (RabbitMQ queue check) |
+
+`GET /health` remains as a backward-compatible alias of `/health/ready` on
+auth-server and the apps.
+
 ## App A (Phase 3)
 
 | Method | Path | Description |
 | :--- | :--- | :--- |
 | GET | `/login` | Generate PKCE + `state`, then redirect to the Auth Provider authorize endpoint |
 | GET | `/callback` | Validate state, exchange code, fetch userinfo, create local session + profile cache, redirect home |
-| GET | `/health` | Liveness probe |
+| GET | `/health/live` | Liveness probe |
+| GET | `/health/ready` | Readiness probe (postgres-local `SELECT 1`) |
 | POST | `/internal/logout` | Revoke local sessions for an event (HMAC-signed, idempotent) |

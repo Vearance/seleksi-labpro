@@ -8,6 +8,7 @@ export const envSchema = z.object({
   OUTBOX_POLL_INTERVAL_MS: z.coerce.number().int().positive().default(1000),
   INTERNAL_HMAC_SECRET: z.string().min(16),
   INTERNAL_HMAC_TTL_SECONDS: z.coerce.number().int().positive().default(300),
+  SYNC_WORKER_HEALTH_PORT: z.coerce.number().int().positive().default(3002),
 });
 
 export type Env = z.infer<typeof envSchema>;

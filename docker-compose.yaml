@@ -98,7 +98,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/health || exit 1"]
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3000/health/live || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -134,11 +134,19 @@ services:
       OUTBOX_POLL_INTERVAL_MS: 1000
       INTERNAL_HMAC_SECRET: ${INTERNAL_HMAC_SECRET:-change-me-internal-hmac-secret}
       INTERNAL_HMAC_TTL_SECONDS: ${INTERNAL_HMAC_TTL_SECONDS:-300}
+      SYNC_WORKER_HEALTH_PORT: 3002
+    ports:
+      - "${SYNC_WORKER_HEALTH_PORT:-3002}:3002"
     depends_on:
       postgres-primary:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:3002/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   # ── Relying Applications ────────────────────────────────────────────
@@ -170,6 +178,11 @@ services:
         condition: service_healthy
       auth-server:
         condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:4001/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
   app-b:
@@ -199,6 +212,11 @@ services:
         condition: service_healthy
       auth-server:
         condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://localhost:4002/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     restart: unless-stopped
 
 # ── Volumes ────────────────────────────────────────────────────────────
