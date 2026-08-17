@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { requireAdmin } from "../../plugins/admin-auth.js";
 import * as policyService from "../../services/policy-service.js";
+import * as revocationTriggerService from "../../services/revocation-trigger-service.js";
 
 const addPolicySchema = {
   body: {
@@ -36,6 +37,7 @@ export async function adminPoliciesRoutes(server: FastifyInstance): Promise<void
     async (request, reply) => {
       const { id, groupId } = request.params as { id: string; groupId: string };
       await policyService.removePolicy(server.db, id, groupId);
+      await revocationTriggerService.handlePolicyRemoval(server.db, id, groupId);
       reply.status(204);
     },
   );

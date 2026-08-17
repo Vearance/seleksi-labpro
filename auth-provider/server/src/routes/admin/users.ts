@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import type { UserStatus } from "@sso/shared";
 import { requireAdmin } from "../../plugins/admin-auth.js";
 import * as userService from "../../services/user-service.js";
+import * as revocationTriggerService from "../../services/revocation-trigger-service.js";
 
 const createUserSchema = {
   body: {
@@ -34,6 +35,17 @@ export async function adminUsersRoutes(server: FastifyInstance): Promise<void> {
   server.patch("/users/:id", { preHandler: requireAdmin }, async (request) => {
     const { id } = request.params as { id: string };
     const body = request.body as userService.UpdateUserInput;
-    return userService.updateUser(server.db, id, body);
+
+    const result = await userService.updateUser(server.db, id, body);
+
+    // Revocation triggers: revoke all sessions + emit the matching event.
+    if (body.password) {
+      await revocationTriggerService.handlePasswordChange(server.db, id);
+    }
+    if (body.status === "INACTIVE") {
+      await revocationTriggerService.handleUserDeactivation(server.db, id);
+    }
+
+    return result;
   });
 }
