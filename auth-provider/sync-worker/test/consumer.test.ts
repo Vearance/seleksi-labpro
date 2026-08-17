@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { EventEnvelope } from "@sso/shared";
-import { handleEvent } from "../src/consumer.js";
+import { handleEvent, scheduleRetryOrDeadLetter } from "../src/consumer.js";
 import { notifyApp } from "../src/notifier.js";
+import { DLQ_ROUTING_KEY, DLX, RETRY_QUEUE } from "../src/outboxPublisher.js";
+import { backoffMs, MAX_ATTEMPTS } from "../src/retry.js";
 
 const envelope: EventEnvelope = {
   eventId: "11111111-1111-4111-8111-111111111111",
@@ -124,5 +126,77 @@ describe("notifyApp", () => {
 
     expect(result.ok).toBe(false);
     expect(result.error).toBe("HTTP 401");
+  });
+});
+
+describe("backoffMs", () => {
+  it("grows with attempts and stays within bounds", () => {
+    for (let i = 0; i < 20; i++) {
+      const first = backoffMs(1);
+      expect(first).toBeGreaterThanOrEqual(500);
+      expect(first).toBeLessThanOrEqual(1000);
+
+      const capped = backoffMs(10);
+      expect(capped).toBeGreaterThanOrEqual(30_000);
+      expect(capped).toBeLessThanOrEqual(60_000);
+    }
+  });
+});
+
+describe("scheduleRetryOrDeadLetter", () => {
+  it("requeues to the retry queue with a TTL when attempts remain", async () => {
+    const updateMany = vi.fn(async () => ({ count: 2 }));
+    const db = {
+      eventDelivery: {
+        findMany: vi.fn(async () => [{ attemptCount: 2 }, { attemptCount: 1 }]),
+        updateMany,
+      },
+    } as never;
+
+    const sendToQueue = vi.fn(
+      (_queue: string, _content: Buffer, _options?: { expiration?: string }) => true,
+    );
+    const publish = vi.fn(
+      (_exchange: string, _routingKey: string, _content: Buffer, _options?: Record<string, unknown>) => true,
+    );
+    const waitForConfirms = vi.fn(async () => undefined);
+    const channel = { sendToQueue, publish, waitForConfirms } as never;
+
+    await scheduleRetryOrDeadLetter(db, channel, envelope);
+
+    expect(sendToQueue).toHaveBeenCalledTimes(1);
+    const [queue, , options] = sendToQueue.mock.calls[0]!;
+    expect(queue).toBe(RETRY_QUEUE);
+    expect(options?.expiration).toBeTruthy();
+    expect(publish).not.toHaveBeenCalled();
+    expect(updateMany).toHaveBeenCalledTimes(1);
+  });
+
+  it("dead-letters when max attempts are reached", async () => {
+    const updateMany = vi.fn(async () => ({ count: 1 }));
+    const db = {
+      eventDelivery: {
+        findMany: vi.fn(async () => [{ attemptCount: MAX_ATTEMPTS }]),
+        updateMany,
+      },
+    } as never;
+
+    const sendToQueue = vi.fn(
+      (_queue: string, _content: Buffer, _options?: { expiration?: string }) => true,
+    );
+    const publish = vi.fn(
+      (_exchange: string, _routingKey: string, _content: Buffer, _options?: Record<string, unknown>) => true,
+    );
+    const waitForConfirms = vi.fn(async () => undefined);
+    const channel = { sendToQueue, publish, waitForConfirms } as never;
+
+    await scheduleRetryOrDeadLetter(db, channel, envelope);
+
+    expect(publish).toHaveBeenCalledTimes(1);
+    const [exchange, routingKey] = publish.mock.calls[0]!;
+    expect(exchange).toBe(DLX);
+    expect(routingKey).toBe(DLQ_ROUTING_KEY);
+    expect(sendToQueue).not.toHaveBeenCalled();
+    expect(updateMany).toHaveBeenCalledTimes(1);
   });
 });

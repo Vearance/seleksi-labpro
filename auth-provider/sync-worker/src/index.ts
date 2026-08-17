@@ -6,7 +6,7 @@ import { createPrismaClient } from "@sso/db";
 import { EventEnvelopeSchema } from "@sso/shared";
 import { loadEnv } from "./config.js";
 import { assertTopology, publishOutboxEvents, QUEUE } from "./outboxPublisher.js";
-import { handleEvent } from "./consumer.js";
+import { handleEvent, scheduleRetryOrDeadLetter } from "./consumer.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../../../.env"), quiet: true });
@@ -36,8 +36,13 @@ await channel.consume(QUEUE, (msg) => {
       if (ok) {
         channel.ack(msg);
       } else {
-        // Transient failure: requeue so the message is redelivered.
-        channel.nack(msg, false, true);
+        try {
+          await scheduleRetryOrDeadLetter(db, channel, parsed.data);
+          channel.ack(msg);
+        } catch (err) {
+          console.error("[consumer] retry scheduling failed", err);
+          channel.nack(msg, false, true); // redeliver for another attempt
+        }
       }
     } catch (err) {
       console.error("[consumer] failed to handle message", err);

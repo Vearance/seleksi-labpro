@@ -1,6 +1,9 @@
+import type { ConfirmChannel } from "amqplib";
 import type { PrismaClient } from "@sso/db";
 import type { EventEnvelope } from "@sso/shared";
 import { notifyApp, type NotifyResult } from "./notifier.js";
+import { DLQ_ROUTING_KEY, DLX, RETRY_QUEUE } from "./outboxPublisher.js";
+import { backoffMs, MAX_ATTEMPTS } from "./retry.js";
 
 export type NotifyFn = (
   url: string,
@@ -79,4 +82,41 @@ export async function handleEvent(
   }
 
   return allSucceeded;
+}
+
+/**
+ * After a failed attempt: either schedule a retry (publish to the TTL retry
+ * queue with backoff) or dead-letter the event when max attempts are reached.
+ * Waits for broker confirms before returning so the caller can safely ack.
+ */
+export async function scheduleRetryOrDeadLetter(
+  db: PrismaClient,
+  channel: ConfirmChannel,
+  envelope: EventEnvelope,
+): Promise<void> {
+  const deliveries = await db.eventDelivery.findMany({
+    where: { eventId: envelope.eventId, status: { not: "SUCCEEDED" } },
+  });
+
+  const maxAttempt = deliveries.reduce((max, d) => Math.max(max, d.attemptCount), 0);
+  const content = Buffer.from(JSON.stringify(envelope));
+
+  if (maxAttempt >= MAX_ATTEMPTS) {
+    channel.publish(DLX, DLQ_ROUTING_KEY, content, { persistent: true });
+    await channel.waitForConfirms();
+
+    await db.eventDelivery.updateMany({
+      where: { eventId: envelope.eventId, status: { not: "SUCCEEDED" } },
+      data: { status: "FAILED" },
+    });
+  } else {
+    const delay = backoffMs(maxAttempt);
+    channel.sendToQueue(RETRY_QUEUE, content, { persistent: true, expiration: String(delay) });
+    await channel.waitForConfirms();
+
+    await db.eventDelivery.updateMany({
+      where: { eventId: envelope.eventId, status: { not: "SUCCEEDED" } },
+      data: { nextRetryAt: new Date(Date.now() + delay) },
+    });
+  }
 }
