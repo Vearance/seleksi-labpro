@@ -1,4 +1,10 @@
-import type { PrismaClient } from "@sso/db";
+import type { Prisma } from "@sso/db";
+
+/**
+ * A client with the model delegates but no client-management methods — accepts
+ * both a `PrismaClient` and a `Prisma.TransactionClient` (for use inside `$transaction`).
+ */
+type DbClient = Prisma.TransactionClient;
 
 /**
  * Revokes a single central session by id. Only touches sessions still marked
@@ -6,7 +12,7 @@ import type { PrismaClient } from "@sso/db";
  * Returns true when a session was actually revoked.
  */
 export async function revokeSession(
-  db: PrismaClient,
+  db: DbClient,
   sessionId: string,
   reason: string,
 ): Promise<boolean> {
@@ -27,7 +33,7 @@ export async function revokeSession(
  * sessions revoked.
  */
 export async function revokeSessionsForUser(
-  db: PrismaClient,
+  db: DbClient,
   userId: string,
   reason: string,
 ): Promise<number> {

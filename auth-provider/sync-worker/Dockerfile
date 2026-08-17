@@ -22,10 +22,9 @@ RUN pnpm install --frozen-lockfile
 # Copy the rest of the source.
 COPY . .
 
-# Build shared + control-panel (vite builds the React SPA, tsc builds the server).
+# Build shared + db (outbox reads the primary DB) + the worker itself.
 RUN pnpm --filter @sso/shared build \
-  && pnpm --filter @sso/control-panel build
+  && pnpm --filter @sso/db build \
+  && pnpm --filter @sso/sync-worker build
 
-EXPOSE 3001
-
-CMD ["node", "auth-provider/control-panel/dist/server.js"]
+CMD ["node", "auth-provider/sync-worker/dist/index.js"]
