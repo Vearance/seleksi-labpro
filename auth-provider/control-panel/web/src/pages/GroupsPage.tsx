@@ -1,5 +1,6 @@
 import { useEffect, useState, type SubmitEvent } from "react";
 import { createGroup, listGroups, updateGroup, type Group } from "../api";
+import RowMenu from "../components/RowMenu";
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -57,54 +58,76 @@ export default function GroupsPage() {
     <section>
       <h2>Groups</h2>
 
-      <form className="inline-form" onSubmit={handleCreate}>
-        <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <input placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-        <button type="submit">Create</button>
-      </form>
-
       {error && <p className="error">{error}</p>}
 
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Created</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {groups.map((group) => (
-            <tr key={group.id}>
-              {editingId === group.id ? (
-                <>
-                  <td>
-                    <input value={editName} onChange={(e) => setEditName(e.target.value)} />
-                  </td>
-                  <td>
-                    <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
-                  </td>
-                  <td>{new Date(group.createdAt).toLocaleString()}</td>
-                  <td>
-                    <button onClick={() => handleSave(group)}>Save</button>
-                    <button onClick={() => setEditingId(null)}>Cancel</button>
-                  </td>
-                </>
-              ) : (
-                <>
-                  <td>{group.name}</td>
-                  <td>{group.description ?? "—"}</td>
-                  <td>{new Date(group.createdAt).toLocaleString()}</td>
-                  <td>
-                    <button onClick={() => startEdit(group)}>Edit</button>
-                  </td>
-                </>
-              )}
+      <div className="card">
+        <table>
+          <colgroup>
+            <col style={{ width: "20%" }} />
+            <col style={{ width: "40%" }} />
+            <col style={{ width: "24%" }} />
+            <col style={{ width: "16%" }} />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Created</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {groups.map((group) => (
+              <tr key={group.id}>
+                {editingId === group.id ? (
+                  <>
+                    <td>
+                      <input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                    </td>
+                    <td>
+                      <input
+                        value={editDescription}
+                        onChange={(e) => setEditDescription(e.target.value)}
+                      />
+                    </td>
+                    <td>{new Date(group.createdAt).toLocaleString()}</td>
+                    <td>
+                      <button onClick={() => handleSave(group)}>Save</button>
+                      <button className="ghost" onClick={() => setEditingId(null)}>
+                        Cancel
+                      </button>
+                    </td>
+                  </>
+                ) : (
+                  <>
+                    <td>{group.name}</td>
+                    <td>{group.description ?? "—"}</td>
+                    <td>{new Date(group.createdAt).toLocaleString()}</td>
+                    <td>
+                      <RowMenu
+                        actions={[{ label: "Edit", onSelect: () => startEdit(group) }]}
+                      />
+                    </td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="panel">
+        <p className="panel-title">New group</p>
+        <form className="inline-form" onSubmit={handleCreate}>
+          <input placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} required />
+          <input
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <button type="submit">Create</button>
+        </form>
+      </div>
     </section>
   );
 }

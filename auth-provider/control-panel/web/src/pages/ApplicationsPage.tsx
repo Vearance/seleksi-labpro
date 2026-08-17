@@ -6,6 +6,8 @@ import {
   type Application,
   type CreatedApplication,
 } from "../api";
+import RowMenu from "../components/RowMenu";
+import StatusBadge from "../components/StatusBadge";
 
 interface FormState {
   name: string;
@@ -99,6 +101,8 @@ export default function ApplicationsPage() {
     <section>
       <h2>Applications</h2>
 
+      {error && <p className="error">{error}</p>}
+
       {created && (
         <div className="secret-box">
           <h3>Application created</h3>
@@ -109,83 +113,110 @@ export default function ApplicationsPage() {
           <p>
             <strong>Client Secret:</strong> <code>{created.clientSecret}</code>
           </p>
-          <button onClick={() => setCreated(null)}>Dismiss</button>
+          <button className="ghost" onClick={() => setCreated(null)}>
+            Dismiss
+          </button>
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        <h3>{editingId ? "Edit application" : "New application"}</h3>
-        <input
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
-        <input
-          placeholder="Launch URL (optional)"
-          value={form.launchUrl}
-          onChange={(e) => setForm({ ...form, launchUrl: e.target.value })}
-        />
-        <input
-          placeholder="Logout notification URL"
-          value={form.logoutNotificationUrl}
-          onChange={(e) => setForm({ ...form, logoutNotificationUrl: e.target.value })}
-          required
-        />
-        <textarea
-          placeholder={"Redirect URIs (one per line)\nhttp://localhost:4001/callback"}
-          value={form.redirectUris}
-          onChange={(e) => setForm({ ...form, redirectUris: e.target.value })}
-          required
-        />
-        <label>
-          Status
-          <select
-            value={form.status}
-            onChange={(e) => setForm({ ...form, status: e.target.value as "ACTIVE" | "INACTIVE" })}
-          >
-            <option value="ACTIVE">Active</option>
-            <option value="INACTIVE">Inactive</option>
-          </select>
-        </label>
-        <div>
-          <button type="submit">{editingId ? "Save" : "Create"}</button>
-          {editingId && (
-            <button type="button" onClick={resetForm}>
-              Cancel
-            </button>
-          )}
-        </div>
-      </form>
-
-      {error && <p className="error">{error}</p>}
-
-      <table>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Client ID</th>
-            <th>Status</th>
-            <th>Redirect URIs</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {applications.map((app) => (
-            <tr key={app.id}>
-              <td>{app.name}</td>
-              <td>
-                <code>{app.clientId}</code>
-              </td>
-              <td>{app.status}</td>
-              <td>{app.redirectUris.join(", ")}</td>
-              <td>
-                <button onClick={() => startEdit(app)}>Edit</button>
-              </td>
+      <div className="card">
+        <table>
+          <colgroup>
+            <col style={{ width: "16%" }} />
+            <col style={{ width: "22%" }} />
+            <col style={{ width: "12%" }} />
+            <col style={{ width: "30%" }} />
+            <col style={{ width: "20%" }} />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Client ID</th>
+              <th>Status</th>
+              <th>Redirect URIs</th>
+              <th>Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {applications.map((app) => (
+              <tr key={app.id}>
+                <td>{app.name}</td>
+                <td>
+                  <code>{app.clientId}</code>
+                </td>
+                <td>
+                  <StatusBadge status={app.status} />
+                </td>
+                <td>{app.redirectUris.join(", ")}</td>
+                <td>
+                  <RowMenu actions={[{ label: "Edit", onSelect: () => startEdit(app) }]} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="panel">
+        <p className="panel-title">{editingId ? "Edit application" : "New application"}</p>
+        <form onSubmit={handleSubmit}>
+          <div className="form-grid">
+            <label className="field">
+              <span className="field-label">Name</span>
+              <input
+                placeholder="App A"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                required
+              />
+            </label>
+            <label className="field">
+              <span className="field-label">Launch URL (optional)</span>
+              <input
+                placeholder="http://localhost:4001/"
+                value={form.launchUrl}
+                onChange={(e) => setForm({ ...form, launchUrl: e.target.value })}
+              />
+            </label>
+            <label className="field full">
+              <span className="field-label">Logout notification URL</span>
+              <input
+                placeholder="http://app-a:4001/internal/logout"
+                value={form.logoutNotificationUrl}
+                onChange={(e) => setForm({ ...form, logoutNotificationUrl: e.target.value })}
+                required
+              />
+            </label>
+            <label className="field full">
+              <span className="field-label">Redirect URIs (one per line)</span>
+              <textarea
+                placeholder={"http://localhost:4001/callback"}
+                value={form.redirectUris}
+                onChange={(e) => setForm({ ...form, redirectUris: e.target.value })}
+                required
+              />
+            </label>
+            <label className="field">
+              <span className="field-label">Status</span>
+              <select
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value as "ACTIVE" | "INACTIVE" })}
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+              </select>
+            </label>
+          </div>
+          <div className="btn-row" style={{ marginTop: 16 }}>
+            <button type="submit">{editingId ? "Save" : "Create"}</button>
+            {editingId && (
+              <button type="button" className="ghost" onClick={resetForm}>
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
     </section>
   );
 }

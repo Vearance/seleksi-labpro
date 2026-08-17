@@ -19,12 +19,12 @@ export default function App() {
       <div className="shell">
         <header className="hero">
           <h1>APP B</h1>
-          <p className="subtitle">Relying application B</p>
+          <p className="sub">Relying application · Single sign-on</p>
         </header>
-        <main className="card">
+        <main className="card landing-card">
           <p className="muted">Sign in with the central identity provider to continue.</p>
           <a className="button" href="/login">
-            Login with SSO
+            Sign in with SSO
           </a>
         </main>
       </div>

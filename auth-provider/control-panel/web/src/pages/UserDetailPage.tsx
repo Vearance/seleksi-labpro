@@ -7,6 +7,8 @@ import {
   type Group,
   type User,
 } from "../api";
+import RowMenu from "../components/RowMenu";
+import StatusBadge from "../components/StatusBadge";
 
 export default function UserDetailPage({ user, onBack }: { user: User; onBack: () => void }) {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -58,48 +60,77 @@ export default function UserDetailPage({ user, onBack }: { user: User; onBack: (
 
   return (
     <section>
-      <button onClick={onBack}>← Back to users</button>
+      <button className="ghost" onClick={onBack}>
+        ← Back to users
+      </button>
       <h2>{user.name}</h2>
-      <p className="subtitle">
-        {user.email} · {user.status}
+      <p className="muted">
+        {user.email} · <StatusBadge status={user.status} />
       </p>
 
-      <h3>Current groups</h3>
-      {groups.length === 0 ? (
-        <p>No groups assigned.</p>
-      ) : (
-        <ul>
-          {groups.map((group) => (
-            <li key={group.id}>
-              {group.name}
-              <button className="danger" onClick={() => handleRemove(group.id)}>
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <h3>Add to group</h3>
-      {available.length === 0 ? (
-        <p>Already in all groups.</p>
-      ) : (
-        <div className="inline-form">
-          <select value={selected} onChange={(e) => setSelected(e.target.value)}>
-            <option value="">Select a group…</option>
-            {available.map((group) => (
-              <option key={group.id} value={group.id}>
-                {group.name}
-              </option>
-            ))}
-          </select>
-          <button onClick={handleAdd} disabled={!selected}>
-            Add
-          </button>
-        </div>
-      )}
-
       {error && <p className="error">{error}</p>}
+
+      <div className="card">
+        <p className="panel-title">Current groups</p>
+        {groups.length === 0 ? (
+          <p className="muted">No groups assigned.</p>
+        ) : (
+          <table>
+            <colgroup>
+              <col style={{ width: "40%" }} />
+              <col style={{ width: "48%" }} />
+              <col style={{ width: "12%" }} />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>Group</th>
+                <th>Description</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {groups.map((group) => (
+                <tr key={group.id}>
+                  <td>{group.name}</td>
+                  <td>{group.description ?? "—"}</td>
+                  <td>
+                    <RowMenu
+                      actions={[
+                        {
+                          label: "Remove",
+                          danger: true,
+                          onSelect: () => handleRemove(group.id),
+                        },
+                      ]}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div className="panel">
+        <p className="panel-title">Add to group</p>
+        {available.length === 0 ? (
+          <p className="muted">Already in all groups.</p>
+        ) : (
+          <div className="inline-form">
+            <select value={selected} onChange={(e) => setSelected(e.target.value)}>
+              <option value="">Select a group…</option>
+              {available.map((group) => (
+                <option key={group.id} value={group.id}>
+                  {group.name}
+                </option>
+              ))}
+            </select>
+            <button onClick={handleAdd} disabled={!selected}>
+              Add
+            </button>
+          </div>
+        )}
+      </div>
     </section>
   );
 }

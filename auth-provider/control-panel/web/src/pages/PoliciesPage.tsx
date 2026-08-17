@@ -9,6 +9,7 @@ import {
   type Group,
   type Policy,
 } from "../api";
+import RowMenu from "../components/RowMenu";
 
 export default function PoliciesPage() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -81,7 +82,9 @@ export default function PoliciesPage() {
     <section>
       <h2>Access Policies</h2>
 
-      <div className="inline-form">
+      {error && <p className="error">{error}</p>}
+
+      <div className="inline-form" style={{ maxWidth: 420 }}>
         <select value={selectedAppId} onChange={(e) => setSelectedAppId(e.target.value)}>
           <option value="">Select an application…</option>
           {applications.map((app) => (
@@ -94,44 +97,74 @@ export default function PoliciesPage() {
 
       {selectedApp && (
         <>
-          <h3>Allowed groups for {selectedApp.name}</h3>
-          {policies.length === 0 ? (
-            <p>No groups allowed yet.</p>
-          ) : (
-            <ul>
-              {policies.map((policy) => (
-                <li key={policy.id}>
-                  {policy.groupName}
-                  <button className="danger" onClick={() => handleRemove(policy.groupId)}>
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+          <div className="card">
+            <p className="panel-title">Allowed groups — {selectedApp.name}</p>
+            {policies.length === 0 ? (
+              <p className="muted">No groups allowed yet.</p>
+            ) : (
+              <table>
+                <colgroup>
+                  <col style={{ width: "34%" }} />
+                  <col style={{ width: "16%" }} />
+                  <col style={{ width: "38%" }} />
+                  <col style={{ width: "12%" }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Group</th>
+                    <th>Access</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {policies.map((policy) => (
+                    <tr key={policy.id}>
+                      <td>{policy.groupName}</td>
+                      <td>
+                        <span className="badge badge-active">ALLOW</span>
+                      </td>
+                      <td>{new Date(policy.createdAt).toLocaleString()}</td>
+                      <td>
+                        <RowMenu
+                          actions={[
+                            {
+                              label: "Remove",
+                              danger: true,
+                              onSelect: () => handleRemove(policy.groupId),
+                            },
+                          ]}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
 
-          <h4>Allow a group</h4>
-          {available.length === 0 ? (
-            <p>All groups are already allowed.</p>
-          ) : (
-            <div className="inline-form">
-              <select value={selectedGroupId} onChange={(e) => setSelectedGroupId(e.target.value)}>
-                <option value="">Select a group…</option>
-                {available.map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name}
-                  </option>
-                ))}
-              </select>
-              <button onClick={handleAdd} disabled={!selectedGroupId}>
-                Allow
-              </button>
-            </div>
-          )}
+          <div className="panel">
+            <p className="panel-title">Allow a group</p>
+            {available.length === 0 ? (
+              <p className="muted">All groups are already allowed.</p>
+            ) : (
+              <div className="inline-form">
+                <select value={selectedGroupId} onChange={(e) => setSelectedGroupId(e.target.value)}>
+                  <option value="">Select a group…</option>
+                  {available.map((group) => (
+                    <option key={group.id} value={group.id}>
+                      {group.name}
+                    </option>
+                  ))}
+                </select>
+                <button onClick={handleAdd} disabled={!selectedGroupId}>
+                  Allow
+                </button>
+              </div>
+            )}
+          </div>
         </>
       )}
-
-      {error && <p className="error">{error}</p>}
     </section>
   );
 }

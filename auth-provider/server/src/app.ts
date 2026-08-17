@@ -15,6 +15,7 @@ import { oauthTokenRoutes } from "./routes/oauth/token.js";
 import { userinfoRoutes } from "./routes/userinfo.js";
 import { adminLoginRoutes } from "./routes/admin/login.js";
 import { adminMeRoutes } from "./routes/admin/me.js";
+import { adminLogoutRoutes } from "./routes/admin/logout.js";
 import { adminUsersRoutes } from "./routes/admin/users.js";
 import { adminGroupsRoutes } from "./routes/admin/groups.js";
 import { adminMembershipRoutes } from "./routes/admin/memberships.js";
@@ -61,6 +62,7 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
 
   server.register(adminLoginRoutes, { prefix: "/admin" });
   server.register(adminMeRoutes, { prefix: "/admin" });
+  server.register(adminLogoutRoutes, { prefix: "/admin" });
   server.register(adminUsersRoutes, { prefix: "/admin" });
   server.register(adminGroupsRoutes, { prefix: "/admin" });
   server.register(adminMembershipRoutes, { prefix: "/admin" });

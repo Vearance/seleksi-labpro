@@ -28,10 +28,11 @@ function LoginForm({ onLogin }: { onLogin: (admin: AdminUser) => void }) {
   }
 
   return (
-    <div className="login-card">
-      <h1>SSO Control Panel</h1>
-      <p className="subtitle">Admin sign in</p>
-      <form onSubmit={handleSubmit}>
+    <div className="login-wrap">
+      <div className="login-card">
+        <p className="login-brand">SSO · Control Panel</p>
+        <h1>Admin sign in</h1>
+        <form onSubmit={handleSubmit}>
         <label>
           Email
           <input
@@ -57,13 +58,14 @@ function LoginForm({ onLogin }: { onLogin: (admin: AdminUser) => void }) {
           {submitting ? "Signing in…" : "Sign in"}
         </button>
       </form>
+      </div>
     </div>
   );
 }
 
 type Page = "home" | "users" | "groups" | "applications" | "policies";
 
-function Shell({ admin }: { admin: AdminUser }) {
+function Shell({ admin, onLogout }: { admin: AdminUser; onLogout: () => void }) {
   const [page, setPage] = useState<Page>("home");
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
@@ -83,9 +85,20 @@ function Shell({ admin }: { admin: AdminUser }) {
           <button onClick={() => navigate("applications")}>Applications</button>
           <button onClick={() => navigate("policies")}>Policies</button>
         </nav>
-        <span className="whoami">
-          Hello, <strong>{admin.name}</strong>
-        </span>
+        <div className="header-right">
+          <span className="whoami">
+            Hello, <strong>{admin.name}</strong>
+          </span>
+          <button
+            className="ghost"
+            onClick={async () => {
+              await fetch("/admin/logout", { method: "POST" });
+              onLogout();
+            }}
+          >
+            Log out
+          </button>
+        </div>
       </header>
       <main>
         {selectedUser ? (
@@ -121,5 +134,5 @@ export default function App() {
 
   if (loading) return <p className="loading">Loading…</p>;
   if (!admin) return <LoginForm onLogin={setAdmin} />;
-  return <Shell admin={admin} />;
+  return <Shell admin={admin} onLogout={() => setAdmin(null)} />;
 }

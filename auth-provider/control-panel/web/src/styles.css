@@ -1,6 +1,21 @@
+/* ─────────────────────────────────────────────────────────────────────────
+   SSO Design System — "Mono"
+   Minimalist, monochrome, uniform across all services.
+   Ink / paper / hairline gray + green & red reserved for status only.
+   ───────────────────────────────────────────────────────────────────────── */
+
 :root {
-  color-scheme: light dark;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --border: #e2e2e2;
+  --border-soft: #f1f1f1;
+  --ink: #18181b;
+  --muted: #71717a;
+  --ok: #16a34a;
+  --danger: #dc2626;
+  --radius: 12px;
+  --font-sans: "Instrument Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
 * {
@@ -9,36 +24,139 @@
 
 body {
   margin: 0;
-  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+h2 {
+  font-size: 21px;
+  margin: 0 0 8px;
+}
+
+h3 {
+  font-size: 15px;
+  margin: 0 0 12px;
+}
+
+h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 20px 0 8px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  margin: 0 0 14px;
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+
+button {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--ink);
+  color: #fff;
+  transition: opacity 120ms ease, border-color 120ms ease, background 120ms ease;
+}
+
+button:hover {
+  opacity: 0.88;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button.ghost {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
+}
+
+button.ghost-danger,
+button.danger {
+  background: var(--surface);
+  color: var(--danger);
+  border-color: #fecaca;
+}
+
+/* space between adjacent buttons (table actions, form rows) */
+td button + button,
+.btn-row button + button,
+form button + button {
+  margin-left: 8px;
+}
+
+.btn-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: #f5f6f8;
-  color: #1a1a1a;
+  gap: 8px;
 }
 
-.login-card {
-  width: 360px;
-  padding: 32px;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+/* small buttons inside tables */
+td button {
+  padding: 6px 12px;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--border);
 }
 
-.login-card h1 {
-  margin: 0 0 4px;
-  font-size: 20px;
+td button.danger {
+  color: var(--danger);
+  border-color: #fecaca;
 }
 
-.subtitle {
-  margin: 0 0 24px;
-  color: #666;
+/* ── Forms ────────────────────────────────────────────────────────────── */
+
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  width: 100%;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--ink);
 }
 
 label {
@@ -46,160 +164,400 @@ label {
   flex-direction: column;
   gap: 6px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
-input {
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 15px;
-}
-
-select,
-textarea {
-  padding: 10px 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 15px;
-  font-family: inherit;
-}
-
-textarea {
-  min-height: 90px;
-  resize: vertical;
-}
-
-button {
-  margin-top: 6px;
-  padding: 11px;
-  border: none;
-  border-radius: 8px;
-  background: #2563eb;
-  color: #fff;
-  font-size: 15px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-button:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-.error {
-  color: #dc2626;
-  font-size: 13px;
-  margin: 0;
-}
-
-.loading {
-  color: #666;
-}
-
-.dashboard {
-  width: 900px;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-}
-
-.dashboard header {
+form.stack {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid #eee;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.brand {
-  font-weight: 700;
-}
+/* ── Cards & panels ───────────────────────────────────────────────────── */
 
-.whoami {
-  font-size: 14px;
-}
-
-.dashboard main {
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 24px;
+  box-shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
 }
 
-.muted {
-  color: #777;
-  font-size: 14px;
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
 }
 
-nav {
-  display: flex;
-  gap: 8px;
+.panel-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+  margin: 0 0 14px;
 }
 
-nav button {
-  margin: 0;
-  padding: 8px 14px;
-  background: #eef2ff;
-  color: #2563eb;
-  font-size: 14px;
-}
-
-.inline-form {
-  flex-direction: row;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.inline-form input {
-  flex: 1;
-}
-
-.inline-form button {
-  margin: 0;
-  padding: 10px 16px;
-}
+/* ── Tables ───────────────────────────────────────────────────────────── */
 
 table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
   font-size: 14px;
 }
 
-th,
-td {
-  text-align: left;
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
-}
-
 th {
-  color: #666;
-  font-size: 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
 }
 
-td button {
-  margin: 0 4px 0 0;
-  padding: 6px 10px;
+td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover td {
+  background: #fcfcfc;
+}
+
+/* ── Badges (status only) ─────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge svg {
+  flex-shrink: 0;
+}
+
+.badge-active {
+  color: var(--ok);
+  border-color: #bbf7d0;
+}
+
+.badge-revoked,
+.badge-inactive {
+  color: var(--danger);
+  border-color: #fecaca;
+}
+
+/* ── Utility ──────────────────────────────────────────────────────────── */
+
+.error {
+  color: var(--danger);
   font-size: 13px;
+  margin: 0 0 16px;
 }
 
-td button.danger {
-  background: #dc2626;
+.loading {
+  color: var(--muted);
+  padding: 48px;
+  text-align: center;
 }
 
-button.danger {
-  background: #dc2626;
+.muted {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 0 20px;
+}
+
+.muted:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Login ────────────────────────────────────────────────────────────── */
+
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 40px 36px;
+  box-shadow: 0 1px 2px rgba(24, 24, 27, 0.04);
+}
+
+.login-brand {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+
+.login-card h1 {
+  margin: 0 0 24px;
+  font-size: 23px;
+}
+
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-card form button {
+  width: 100%;
+  margin-top: 6px;
+}
+
+/* ── Dashboard shell ──────────────────────────────────────────────────── */
+
+.dashboard {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+}
+
+.dashboard > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.brand {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  background: var(--ink);
+  border-radius: 2px;
+}
+
+.whoami {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.whoami strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.dashboard main {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.dashboard main > section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Nav ──────────────────────────────────────────────────────────────── */
+
+nav {
+  display: flex;
+  gap: 4px;
+}
+
+nav button {
+  background: transparent;
+  color: var(--muted);
+  padding: 8px 14px;
+}
+
+nav button:hover {
+  opacity: 1;
+  color: var(--ink);
+  background: var(--border-soft);
+}
+
+/* ── Page helpers ─────────────────────────────────────────────────────── */
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.inline-form input,
+.inline-form select {
+  flex: 1;
+  width: auto;
+}
+
+.inline-form button {
+  width: auto;
+  flex-shrink: 0;
 }
 
 .secret-box {
-  margin-bottom: 16px;
-  padding: 16px;
-  border: 1px solid #fcd34d;
-  border-radius: 8px;
-  background: #fffbeb;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fcfcfc;
+  padding: 20px;
+}
+
+.secret-box h3 {
+  margin: 0 0 6px;
+}
+
+.secret-box p {
+  margin: 6px 0;
+  font-size: 14px;
 }
 
 .secret-box code {
   word-break: break-all;
+}
+
+ul.plain-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+ul.plain-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+ul.plain-list li:last-child {
+  border-bottom: none;
+}
+
+/* ── Row menu (three dots) ─────────────────────────────────────────────── */
+
+.menu {
+  position: relative;
+  display: inline-block;
+}
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  opacity: 1;
+  border-color: var(--ink);
+}
+
+.menu-pop {
+  /* fixed to the viewport (coords set inline by RowMenu) so table cells
+     with `overflow: hidden` cannot clip the popup */
+  position: fixed;
+  min-width: 168px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(24, 24, 27, 0.08);
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+}
+
+.menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  color: var(--ink);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 400;
+  /* neutralize `td button + button { margin-left }` so popup items align */
+  margin: 0;
+}
+
+.menu-item:hover {
+  background: var(--border-soft);
+  opacity: 1;
+}
+
+.menu-item-danger {
+  color: var(--danger);
+}
+
+/* ── Form grid (application form) ──────────────────────────────────────── */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-grid .full {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.field-label {
+  font-size: 13px;
+  font-weight: 500;
 }
