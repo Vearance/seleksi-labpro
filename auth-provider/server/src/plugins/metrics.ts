@@ -1,5 +1,5 @@
 import fp from "fastify-plugin";
-import { connect, type Channel, type Connection } from "amqplib";
+import { connect, type Channel, type ChannelModel } from "amqplib";
 import { Counter, Gauge, Histogram, Registry } from "prom-client";
 import type { FastifyInstance } from "fastify";
 
@@ -130,7 +130,7 @@ export default fp(
     // Best-effort broker connection (metrics + readiness)
 
     let channel: Channel | null = null;
-    let connection: Connection | null = null;
+    let connection: ChannelModel | null = null;
     let stopped = false;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
