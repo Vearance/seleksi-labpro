@@ -64,7 +64,7 @@ declare module "fastify" {
 }
 
 /**
- * Observability (B02): Prometheus registry + HTTP RED instrumentation,
+ * Observability: Prometheus registry + HTTP RED instrumentation,
  * broker queue-depth gauges (main / retry / DLQ), outbox depth, and a JSON
  * snapshot for the control-panel dashboard. The broker connection is
  * best-effort and keeps retrying in the background — it must never take the
@@ -127,7 +127,7 @@ export default fp(
       if (reply.statusCode >= 400) errorCount += 1;
     });
 
-    // ── Best-effort broker connection (metrics + readiness) ────────────
+    // Best-effort broker connection (metrics + readiness)
 
     let channel: Channel | null = null;
     let connection: Connection | null = null;
@@ -164,7 +164,7 @@ export default fp(
       }, RECONNECT_DELAY_MS);
     }
 
-    // ── Gauges refreshed periodically ──────────────────────────────────
+    // Gauges refreshed periodically
 
     const queueDepths: Record<string, number> = {};
     for (const q of QUEUES) queueDepths[q] = 0;

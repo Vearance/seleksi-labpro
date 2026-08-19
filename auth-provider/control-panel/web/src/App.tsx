@@ -5,6 +5,7 @@ import GroupsPage from "./pages/GroupsPage";
 import UserDetailPage from "./pages/UserDetailPage";
 import ApplicationsPage from "./pages/ApplicationsPage";
 import PoliciesPage from "./pages/PoliciesPage";
+import MetricsPage from "./pages/MetricsPage";
 
 function LoginForm({ onLogin }: { onLogin: (admin: AdminUser) => void }) {
   const [email, setEmail] = useState("");
@@ -63,7 +64,7 @@ function LoginForm({ onLogin }: { onLogin: (admin: AdminUser) => void }) {
   );
 }
 
-type Page = "home" | "users" | "groups" | "applications" | "policies";
+type Page = "home" | "users" | "groups" | "applications" | "policies" | "metrics";
 
 function Shell({ admin, onLogout }: { admin: AdminUser; onLogout: () => void }) {
   const [page, setPage] = useState<Page>("home");
@@ -84,6 +85,7 @@ function Shell({ admin, onLogout }: { admin: AdminUser; onLogout: () => void }) 
           <button onClick={() => navigate("groups")}>Groups</button>
           <button onClick={() => navigate("applications")}>Applications</button>
           <button onClick={() => navigate("policies")}>Policies</button>
+          <button onClick={() => navigate("metrics")}>Metrics</button>
         </nav>
         <div className="header-right">
           <span className="whoami">
@@ -111,6 +113,8 @@ function Shell({ admin, onLogout }: { admin: AdminUser; onLogout: () => void }) 
           <ApplicationsPage />
         ) : page === "policies" ? (
           <PoliciesPage />
+        ) : page === "metrics" ? (
+          <MetricsPage />
         ) : (
           <>
             <h2>Welcome</h2>

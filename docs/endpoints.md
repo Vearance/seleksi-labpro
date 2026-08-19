@@ -78,6 +78,17 @@ without sensitive internals.
 `GET /health` remains as a backward-compatible alias of `/health/ready` on
 auth-server and the apps.
 
+## Metrics (B02)
+
+| Method | Path | Description | Notes |
+| :--- | :--- | :--- | :--- |
+| GET | `/metrics` (auth-server) | Prometheus text exposition: HTTP RED metrics, `rabbitmq_queue_messages` (main/retry/DLQ), `outbox_pending_events` | Scrape target |
+| GET | `/metrics` (sync-worker :3002) | Prometheus text: `outbox_events_published_total`, `events_handled_total`, `events_dead_lettered_total` | Scrape target |
+| GET | `/admin/metrics/snapshot` (auth-server) | JSON snapshot for the control-panel dashboard (latency, errors, queue depths, outbox) | Requires admin session; reached via the control-panel `/admin/*` proxy |
+
+Queue depths are read live from the broker (`checkQueue`); the outbox pending
+count comes from the primary DB — both reflect real state, never hardcoded.
+
 ## App A (Phase 3)
 
 | Method | Path | Description |

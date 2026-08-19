@@ -14,6 +14,7 @@ export const envSchema = z.object({
   AUTH_SERVER_INTERNAL_URL: z.string().url().default("http://auth-server:3000"),
   AUTH_SERVER_SESSION_TTL_MINUTES: z.coerce.number().int().positive().default(480),
   DATABASE_URL: z.string().url(),
+  RABBITMQ_URL: z.string().min(1),
   ADMIN_SESSION_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
   ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().positive().default(3600),
 });

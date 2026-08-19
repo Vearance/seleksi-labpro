@@ -14,6 +14,7 @@ const testConfig: Env = {
   AUTH_SERVER_INTERNAL_URL: "http://auth-server:3000",
   AUTH_SERVER_SESSION_TTL_MINUTES: 480,
   DATABASE_URL: "postgresql://sso:password@localhost:5432/sso_primary",
+  RABBITMQ_URL: "amqp://localhost:5672/",
   ADMIN_SESSION_TTL_SECONDS: 3600,
   ACCESS_TOKEN_TTL_SECONDS: 3600,
 };
@@ -30,10 +31,21 @@ describe("auth-server", () => {
     await server.close();
   });
 
-  it("GET /health returns 200", async () => {
-    const res = await server.inject({ method: "GET", url: "/health" });
+  it("GET /health/live returns 200 without touching dependencies", async () => {
+    const res = await server.inject({ method: "GET", url: "/health/live" });
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual({ status: "ok" });
+  });
+
+  it("GET /health/ready reports degraded when dependencies are unreachable", async () => {
+    // In unit tests there is no DB and no broker, so readiness must be 503
+    // and name the failing components without leaking internals.
+    const res = await server.inject({ method: "GET", url: "/health/ready" });
+    expect(res.statusCode).toBe(503);
+    const body = res.json();
+    expect(body.status).toBe("degraded");
+    expect(body.checks.database.ok).toBe(false);
+    expect(body.checks.broker.ok).toBe(false);
   });
 
   it("unknown route returns the standard 404 error format", async () => {

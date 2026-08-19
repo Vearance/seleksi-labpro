@@ -82,6 +82,7 @@ services:
       AUTH_SERVER_PUBLIC_URL: ${AUTH_SERVER_PUBLIC_URL:-http://localhost:3000}
       AUTH_SERVER_INTERNAL_URL: ${AUTH_SERVER_INTERNAL_URL:-http://auth-server:3000}
       DATABASE_URL: postgresql://${POSTGRES_PRIMARY_USER:-sso}:${POSTGRES_PRIMARY_PASSWORD:-change-me}@postgres-primary:5432/${POSTGRES_PRIMARY_DB:-sso_primary}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-sso}:${RABBITMQ_PASSWORD:-change-me}@rabbitmq:5672/
       SEED_ADMIN_USERNAME: ${SEED_ADMIN_USERNAME:-admin}
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@example.com}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-change-me-admin-password}

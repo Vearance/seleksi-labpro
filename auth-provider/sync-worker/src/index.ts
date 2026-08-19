@@ -8,6 +8,7 @@ import { EventEnvelopeSchema, pingComponent, type ComponentHealth } from "@sso/s
 import { loadEnv } from "./config.js";
 import { assertTopology, publishOutboxEvents, QUEUE } from "./outboxPublisher.js";
 import { handleEvent, scheduleRetryOrDeadLetter } from "./consumer.js";
+import { handledEvents, metricsText, publishedEvents } from "./metrics.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, "../../../.env"), quiet: true });
@@ -51,6 +52,15 @@ const healthServer: Server = createServer((req, res) => {
     void readiness().then((body) => sendJson(res, body.status === "ok" ? 200 : 503, body));
     return;
   }
+  if (req.url === "/metrics") {
+    void metricsText()
+      .then((text) => {
+        res.writeHead(200, { "content-type": "text/plain; version=0.0.4" });
+        res.end(text);
+      })
+      .catch(() => sendJson(res, 500, { error: { code: "INTERNAL_ERROR", message: "Failed to render metrics" } }));
+    return;
+  }
   sendJson(res, 404, { error: { code: "NOT_FOUND", message: "Route not found" } });
 });
 
@@ -80,6 +90,7 @@ const { consumerTag } = await channel.consume(QUEUE, (msg) => {
       }
 
       const ok = await handleEvent(db, parsed.data, config.INTERNAL_HMAC_SECRET);
+      handledEvents.inc({ result: ok ? "success" : "failed" });
       console.log(`[consumer] event ${parsed.data.eventId} handled (allSucceeded=${ok})`);
       if (ok) {
         channel.ack(msg);
@@ -110,6 +121,7 @@ async function tick(): Promise<void> {
   try {
     const count = await publishOutboxEvents(db, channel);
     if (count > 0) {
+      publishedEvents.inc(count);
       console.log(`[publisher] published ${count} event(s)`);
     }
   } catch (err) {

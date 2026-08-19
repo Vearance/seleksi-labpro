@@ -5,9 +5,11 @@ import type { Env } from "./config.js";
 import "./types.js";
 import { buildLoggerConfig } from "./logger.js";
 import dbPlugin from "./plugins/db.js";
+import metricsPlugin from "./plugins/metrics.js";
 import { errorHandler } from "./plugins/error-handler.js";
 import { notFoundHandler } from "./plugins/not-found.js";
 import { healthRoutes } from "./routes/health.js";
+import { metricsRoutes } from "./routes/metrics.js";
 import { loginRoutes } from "./routes/login.js";
 import { logoutRoutes } from "./routes/logout.js";
 import { oauthAuthorizeRoutes } from "./routes/oauth/authorize.js";
@@ -53,7 +55,9 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
 
   server.register(cookie, { secret: config.AUTH_SERVER_COOKIE_SECRET });
   server.register(dbPlugin);
+  server.register(metricsPlugin);
   server.register(healthRoutes);
+  server.register(metricsRoutes);
   server.register(loginRoutes);
   server.register(logoutRoutes);
   server.register(oauthAuthorizeRoutes, { prefix: "/oauth" });

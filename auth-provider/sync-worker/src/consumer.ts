@@ -1,6 +1,7 @@
 import type { ConfirmChannel } from "amqplib";
 import type { PrismaClient } from "@sso/db";
 import type { EventEnvelope } from "@sso/shared";
+import { deadLetteredEvents } from "./metrics.js";
 import { notifyApp, type NotifyResult } from "./notifier.js";
 import { DLQ_ROUTING_KEY, DLX, RETRY_QUEUE } from "./outboxPublisher.js";
 import { backoffMs, MAX_ATTEMPTS } from "./retry.js";
@@ -104,6 +105,7 @@ export async function scheduleRetryOrDeadLetter(
   if (maxAttempt >= MAX_ATTEMPTS) {
     channel.publish(DLX, DLQ_ROUTING_KEY, content, { persistent: true });
     await channel.waitForConfirms();
+    deadLetteredEvents.inc();
 
     await db.eventDelivery.updateMany({
       where: { eventId: envelope.eventId, status: { not: "SUCCEEDED" } },
