@@ -3,15 +3,18 @@ import { pingComponent, type ComponentHealth } from "@sso/shared";
 
 interface ReadinessBody {
   status: "ok" | "degraded";
-  checks: { database: ComponentHealth };
+  checks: { database: ComponentHealth; broker: ComponentHealth };
 }
 
 /** Checks the dependencies the auth-server needs to do useful work. */
 async function readiness(server: FastifyInstance): Promise<ReadinessBody> {
-  const database = await pingComponent(server.db.$queryRaw`SELECT 1`);
+  const [database, broker] = await Promise.all([
+    pingComponent(server.db.$queryRaw`SELECT 1`),
+    pingComponent(server.metrics.pingBroker()),
+  ]);
   return {
-    status: database.ok ? "ok" : "degraded",
-    checks: { database },
+    status: database.ok && broker.ok ? "ok" : "degraded",
+    checks: { database, broker },
   };
 }
 
@@ -25,7 +28,6 @@ export async function healthRoutes(server: FastifyInstance): Promise<void> {
     return reply.status(body.status === "ok" ? 200 : 503).send(body);
   });
 
-  // Backward-compatible alias (was a plain liveness probe); now readiness.
   server.get("/health", { logLevel: "silent" }, async (_request, reply) => {
     const body = await readiness(server);
     return reply.status(body.status === "ok" ? 200 : 503).send(body);
