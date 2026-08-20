@@ -13,7 +13,7 @@ const prisma = new PrismaClient({ adapter });
 
 const USERS = {
   admin: "00000000-1000-4000-8000-000000000001",
-  alice: "00000000-1000-4000-8000-000000000002",
+  aloi: "00000000-1000-4000-8000-000000000002",
   bob: "00000000-1000-4000-8000-000000000003",
   charlie: "00000000-1000-4000-8000-000000000004",
 } as const;
@@ -54,7 +54,7 @@ async function seed(): Promise<void> {
   console.log("[seed] Seeding users …");
   const userArgs = [
     { id: USERS.admin, name: "Admin", email: env("SEED_ADMIN_EMAIL"), passwordHash: adminHash, status: "ACTIVE" as const },
-    { id: USERS.alice, name: "Alice", email: "alice@example.com", passwordHash: demoHash, status: "ACTIVE" as const },
+    { id: USERS.aloi, name: "Aloi", email: "aloi@example.com", passwordHash: demoHash, status: "ACTIVE" as const },
     { id: USERS.bob, name: "Bob", email: "bob@example.com", passwordHash: demoHash, status: "ACTIVE" as const },
     { id: USERS.charlie, name: "Charlie", email: "charlie@example.com", passwordHash: demoHash, status: "ACTIVE" as const },
   ];
@@ -75,7 +75,7 @@ async function seed(): Promise<void> {
   console.log("[seed] Seeding memberships …");
   const memberships = [
     { userId: USERS.admin, groupId: GROUPS.admin },
-    { userId: USERS.alice, groupId: GROUPS.employees },
+    { userId: USERS.aloi, groupId: GROUPS.employees },
     { userId: USERS.bob, groupId: GROUPS.employees },
     { userId: USERS.charlie, groupId: GROUPS.contractors },
   ];

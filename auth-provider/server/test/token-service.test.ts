@@ -199,8 +199,8 @@ describe("getUserInfo", () => {
           expiresAt: future,
           user: {
             status: "ACTIVE",
-            name: "Alice",
-            email: "alice@example.com",
+            name: "Aloi",
+            email: "aloi@example.com",
             groups: [
               { group: { name: "employees" } },
               { group: { name: "contractors" } },
@@ -214,8 +214,8 @@ describe("getUserInfo", () => {
     expect(info).toEqual({
       sub: "user-id",
       sid: "session-id",
-      name: "Alice",
-      email: "alice@example.com",
+      name: "Aloi",
+      email: "aloi@example.com",
       groups: ["contractors", "employees"],
     });
   });
@@ -228,7 +228,7 @@ describe("getUserInfo", () => {
           status: "ACTIVE",
           revokedAt: null,
           expiresAt: past,
-          user: { status: "ACTIVE", name: "Alice", email: "alice@example.com", groups: [] },
+          user: { status: "ACTIVE", name: "Aloi", email: "aloi@example.com", groups: [] },
         })),
       },
     } as never;

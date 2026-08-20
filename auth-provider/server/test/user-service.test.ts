@@ -22,7 +22,7 @@ function mockDb(overrides: Record<string, unknown> = {}) {
 describe("user-service", () => {
   it("hashes the password before storing (never plaintext)", async () => {
     const db = mockDb();
-    await createUser(db, { name: "Alice", email: "alice@example.com", password: "secret123" });
+    await createUser(db, { name: "Aloi", email: "aloi@example.com", password: "secret123" });
 
     const createCall = (db as { user: { create: ReturnType<typeof vi.fn> } }).user.create.mock
       .calls[0]![0] as { data: { passwordHash: string } };
@@ -49,13 +49,13 @@ describe("user-service", () => {
     const db = mockDb({
       user: {
         findMany: vi.fn(async () => [
-          { id: "u1", name: "Alice", email: "alice@example.com", status: "ACTIVE", createdAt: new Date() },
+          { id: "u1", name: "Aloi", email: "aloi@example.com", status: "ACTIVE", createdAt: new Date() },
         ]),
       },
     });
 
     const users = await listUsers(db);
     expect(users[0]).not.toHaveProperty("passwordHash");
-    expect(users[0]).toHaveProperty("email", "alice@example.com");
+    expect(users[0]).toHaveProperty("email", "aloi@example.com");
   });
 });
