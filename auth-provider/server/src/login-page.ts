@@ -40,10 +40,10 @@ const PAGE_STYLE = `
   input:focus { outline: none; border-color: var(--ink); }
   button {
     font-family: inherit; font-size: 14px; font-weight: 500; padding: 10px 16px;
-    border: none; border-radius: 8px; background: var(--ink); color: #fff; cursor: pointer; margin-top: 6px;
+    border: none; border-radius: 8px; background: var(--ink); color: #fff; cursor: pointer;
   }
   button:hover { opacity: 0.88; }
-  .error { color: var(--danger); font-size: 13px; margin: 0; }
+  .error { color: var(--danger); font-size: 13px; margin: 14px 0 0; }
   .note { color: var(--muted); font-size: 13px; margin: 20px 0 0; text-align: center; }
 `;
 
@@ -79,7 +79,6 @@ export function renderLoginPage(returnTo: string, error?: string): string {
       <button type="submit">Sign in</button>
     </form>
     <p id="error" class="error" style="display:none">Invalid credentials</p>
-    <p class="note">Session kamu berlaku di semua aplikasi terhubung.</p>
   </div>
   <script>
     document.getElementById("login-form").addEventListener("submit", async (e) => {

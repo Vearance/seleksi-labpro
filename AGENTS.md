@@ -13,10 +13,10 @@ per-app `/internal/logout`).
 distilled in "Core Requirements" below and per-task in `tasks/plan.md`. Open the full
 spec only when a detail is not covered there.
 
-**Status:** planning. Ordered tasks, acceptance criteria, and checkpoints live in
+**Status:** implemented (F00–F05 selesai; bonus B02–B04 selesai, B01 di-skip).
+Ordered tasks, acceptance criteria, and checkpoints live in
 `tasks/plan.md`; progress is tracked in `tasks/todo.md`. Prefer referring to the plan
 for detail instead of duplicating it here.
-The repo is still a placeholder skeleton; the structure below is the target to scaffold.
 
 ## Core Requirements (distilled from the spec)
 
