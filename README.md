@@ -1,1 +1,110 @@
-# Seleksi Laboratorium Pemograman
+# Seleksi LabPro 2026: SSO Identity & Authorization Provider
+
+## 1. Identitas
+
+| | |
+| :--- | :--- |
+| Nama | Nathaniel Christian |
+| NIM | 13524122 |
+
+## 2. Cara Menjalankan Sistem
+
+**Prerequisites:** Docker + Docker Compose, Node.js ≥ 22 (for migration/seed manual), pnpm (optional, for local build).
+
+```powershell
+# 1. Copy .env.example ke .env
+cp .env.example .env
+
+# 2. Build dan jalankan sistem
+docker compose up -d --build
+```
+
+Cek status: `docker compose ps` (semua `healthy`).
+
+### URL & kredensial
+
+| Komponen | URL |
+| :--- | :--- |
+| Auth Provider | http://localhost:3000 |
+| Control Panel admin | http://localhost:3001 |
+| App A | http://localhost:4001 |
+| App B | http://localhost:4002 |
+| RabbitMQ | http://localhost:15672 |
+| Sync worker | http://localhost:3002 |
+
+| Peran | Email/Username | Password |
+| :--- | :--- | :--- |
+| Admin (control panel) | `admin@example.com` | `admin-password` |
+| Demo user | `aloi@example.com` | `demo-password` |
+| Demo user | `bob@example.com` | `demo-password` |
+| Demo user | `charlie@example.com` | `demo-password` |
+| User RabbitMQ | `sso` | `password` |
+
+## 3. Arsitektur & Alur
+
+Ada 8 service yang berjalan dalam docker compose:
+
+- **Auth (SSO) provider**: `auth-server`, `control-panel`, `sync-worker`
+- **Relying apps**: `app-a` & `app-b`
+- **Infra**: database Auth Provider `postgres-primary`, database App A/B `postgres-local`, broker `rabbitmq`
+
+**Alur inti:**
+1. **Login SSO**: `/login` validasi akun (argon2id), untuk central session (auth_sid) dibuat.
+2. **OAuth**: app generate PKCE + `state` → redirect `/oauth/authorize` →
+   policy evaluation (user aktif, app aktif, `redirect_uri` exact-match,
+   group di-assign, session valid) → one-time code → `POST /oauth/token`
+   (PKCE verified, code dikonsumsi atomik) → opaque access token →
+   `GET /userinfo` → app buat local session sendiri.
+3. **Revocation**: SSO logout / password change / user deactivate / policy
+   change menulis event ke outbox **dalam satu transaksi**; worker publish
+   ke RabbitMQ (confirm), consume, dan memanggil `/internal/logout` tiap
+   app. Gagal → retry dengan backoff eksponensial → DLQ setelah maksimum
+   percobaan. At-least-once + idempotent (`processed_events.event_id`).
+
+
+Untuk detail arsitektur dan alur ada di: [`docs/arsitektur.md`](docs/arsitektur.md).
+
+## 4. Keputusan Teknis
+
+| Topik | Keputusan |
+| :--- | :--- |
+
+> TODO
+
+## 5. Technology Stack
+
+| Komponen | Versi |
+| :--- | :--- |
+| Node.js | 22 LTS (`node:22-alpine`) |
+| TypeScript | 5.9 |
+| pnpm | 11 |
+| Fastify | 5.11 |
+| React | 19 (SPA, `@fastify/static`) |
+| Vite | 5.4 |
+| Prisma | 7.9 |
+| PostgreSQL | 16 |
+| RabbitMQ | 3.13 |
+
+## 6. Daftar Endpoint
+
+See: [`docs/endpoints.md`](docs/endpoints.md).
+
+Ringkasan: `POST /login`, `POST /logout`, `GET /oauth/authorize`,
+`POST /oauth/token`, `GET /userinfo`, admin API `/admin/*` (users, groups,
+memberships, applications, policies, metrics snapshot), app endpoints
+(`/login`, `/callback`, `/api/me`, `/api/activity-log`,
+`/api/processed-events`, `/api/logout`, `/internal/logout`), health probes
+(`/health/live`, `/health/ready`), metrics (`/metrics`,
+`/admin/metrics/snapshot`).
+
+## 7. Bonus yang Dikerjakan
+
+| Bonus |
+| :--- |
+| B02 - Observability |
+| B03 - Liveness & Readiness probe | 
+| B04 - Graceful shutdown | 
+
+## 8. Screenshot
+
+> TODO
