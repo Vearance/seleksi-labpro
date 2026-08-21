@@ -21,7 +21,11 @@ interface UserInfoResponse {
 
 export async function callbackRoutes(server: FastifyInstance): Promise<void> {
   server.get("/callback", async (request, reply) => {
-    const { code, state } = request.query as { code?: string; state?: string };
+    const { code, state, error } = request.query as {
+      code?: string;
+      state?: string;
+      error?: string;
+    };
 
     if (!state) {
       return reply.type("text/html").send(renderErrorPage("Invalid login session."));
@@ -30,6 +34,18 @@ export async function callbackRoutes(server: FastifyInstance): Promise<void> {
     const oauthState = await oauthStateService.consumeOAuthState(server.db, state, APPLICATION_ID);
     if (!oauthState) {
       return reply.type("text/html").send(renderErrorPage("Login session expired or already used."));
+    }
+
+    // Policy deny: the authorize endpoint redirects back with error=access_denied.
+    if (error === "access_denied") {
+      await activityService.writeActivity(server.db, {
+        applicationId: APPLICATION_ID,
+        event: "access_denied",
+        correlationId: state,
+      });
+      return reply
+        .type("text/html")
+        .send(renderErrorPage("Access denied. You are not allowed to use this application."));
     }
 
     await activityService.writeActivity(server.db, {
