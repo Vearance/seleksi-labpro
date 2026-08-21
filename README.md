@@ -50,16 +50,8 @@ Ada 8 service yang berjalan dalam docker compose:
 
 **Alur inti:**
 1. **Login SSO**: `/login` validasi akun (argon2id), untuk central session (auth_sid) dibuat.
-2. **OAuth**: app generate PKCE + `state` → redirect `/oauth/authorize` →
-   policy evaluation (user aktif, app aktif, `redirect_uri` exact-match,
-   group di-assign, session valid) → one-time code → `POST /oauth/token`
-   (PKCE verified, code dikonsumsi atomik) → opaque access token →
-   `GET /userinfo` → app buat local session sendiri.
-3. **Revocation**: SSO logout / password change / user deactivate / policy
-   change menulis event ke outbox **dalam satu transaksi**; worker publish
-   ke RabbitMQ (confirm), consume, dan memanggil `/internal/logout` tiap
-   app. Gagal → retry dengan backoff eksponensial → DLQ setelah maksimum
-   percobaan. At-least-once + idempotent (`processed_events.event_id`).
+2. **OAuth**: app generate PKCE + `state` -> redirect `/oauth/authorize` -> policy evaluation -> one-time code -> `POST /oauth/token` (PKCE verified) -> opaque access token -> `GET /userinfo` -> app buat local session sendiri.
+3. **Revocation**: SSO logout / password change / user deactivate / policy change menulis event ke outbox dalam satu transaksi; worker publish ke RabbitMQ (confirm), consume, dan memanggil `/internal/logout` tiap app. Gagal -> retry dengan backoff eksponensial -> DLQ setelah maksimum percobaan. 
 
 
 Untuk detail arsitektur dan alur ada di: [`docs/arsitektur.md`](docs/arsitektur.md).
@@ -68,8 +60,10 @@ Untuk detail arsitektur dan alur ada di: [`docs/arsitektur.md`](docs/arsitektur.
 
 | Topik | Keputusan |
 | :--- | :--- |
-
-> TODO
+| Token strategy | **Opaque access token**; hash-nya disimpan di DB, bukan JWT. Bisa di-revoke kapan saja (termasuk ikut ke-revoke saat central session di-revoke). **Konsekuensi:** setiap validasi butuh 1 query DB (JWT sulit di-revoke). |
+| Message broker | **RabbitMQ**; dipakai untuk routing, retry (backoff), dan DLQ. **Konsekuensi:** broker mati tidak menghilangkan event, event tetap tersimpan di outbox dan dikirim lagi setelah broker pulih. |
+| Autentikasi `/internal/logout` | **HMAC-SHA256** dengan shared secret + timestamp, karena endpoint ini bukan OAuth client. **Konsekuensi:** worker dan semua app harus memegang secret yang sama; timestamp mencegah replay request lama. |
+| Hapus data | **Deactivate via `status`** tanpa `deleted_at` — tidak ada DELETE fisik; "delete" di UI mengubah status. Dipilih karena tombstone bentrok dengan unique constraint (email, policy). **Konsekuensi:** data lama tidak bisa dihapus, hanya bisa dinonaktifkan. |
 
 ## 5. Technology Stack
 

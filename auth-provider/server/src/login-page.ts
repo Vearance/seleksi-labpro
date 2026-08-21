@@ -141,7 +141,7 @@ export function renderSsoHomePage(name: string, email: string): string {
   <div class="card">
     <p class="brand">SSO · Identity Provider</p>
     <h1>Hello, ${escapeHtml(name)}</h1>
-    <p class="note">${escapeHtml(email)} · signed in on every connected app.</p>
+    <p class="note">${escapeHtml(email)} · signed in on every app.</p>
     <button id="logout-btn" type="button" style="width:100%">Log out everywhere</button>
   </div>
   <script>

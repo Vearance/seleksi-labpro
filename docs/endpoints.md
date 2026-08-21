@@ -1,28 +1,25 @@
 # Endpoints
 
-Living register of HTTP endpoints. Standard error format for non-OAuth routes:
-`{ "error": { "code", "message", "requestId" } }`.
 
-## OAuth Core
+## Auth Provider Core (auth-server, :3000)
 
-| Method | Path | Description | Notes |
+| Method | Path | Deskripsi | Notes |
 | :--- | :--- | :--- | :--- |
-| POST | `/oauth/token` | Exchange an authorization code for an access token | OAuth 2.0 error format `{ error, error_description }` |
-| GET | `/userinfo` | Return profile for a Bearer access token | Returns `sub`, `name`, `email`, `groups` |
-| POST | `/logout` | Revoke the central session and clear the `auth_sid` cookie | Idempotent |
+| GET | `/` | Identitas user yang login + tombol logout SSO global | Redirect ke `/login` bila belum ada central session |
+| GET | `/login` | Halaman login | `?return_to=/oauth/authorize..` untuk lanjut authorize setelah login |
+| POST | `/login` | `{email, password}` -> buat central session + set-cookie `auth_sid` | Gagal -> Error 401 |
+| POST | `/logout` | Revoke central session (cookie `auth_sid`) + emit `SessionRevoked` via outbox + clear cookie | Idempotent; access token milik session ikut di-revoke |
+| GET | `/oauth/authorize` | OAuth authorize: validasi client, exact-match `redirect_uri`, PKCE, evaluasi policy, buat one-time code | Tanpa session -> redirect `/login?return_to=..`; request tidak valid -> error page; policy deny -> redirect `?error=access_denied` |
+| POST | `/oauth/token` | Menukar authorization code menjadi opaque access token | Single-use only, error invalid_grant otherwise |
+| GET | `/userinfo` | Header request `Authorization: Bearer <token>` | 401 + `WWW-Authenticate: Bearer` apabila token invalid/revoked/expired |
 
 ### `POST /oauth/token`
 
-Body (application/x-www-form-urlencoded or JSON):
+Body (form-urlencoded atau JSON): `grant_type=authorization_code`, `code`,
+`client_id`, `client_secret`, `code_verifier`, `redirect_uri` (opsional, harus
+sama dengan permintaan authorize).
 
-- `grant_type` — must be `authorization_code`
-- `code` — the one-time authorization code
-- `client_id`
-- `client_secret`
-- `code_verifier` — PKCE verifier
-- `redirect_uri` — optional; must match the authorize request if provided
-
-Success (200):
+Sukses (200):
 
 ```json
 {
@@ -32,69 +29,82 @@ Success (200):
 }
 ```
 
-Errors use `{ "error": "invalid_grant", "error_description": "..." }` with
-`invalid_request` / `invalid_client` / `invalid_grant` / `unsupported_grant_type`.
-The code is single-use (atomic consume), short-lived, and bound to its client,
-redirect URI, and PKCE challenge.
+Error memakai `invalid_request` / `invalid_client` / `invalid_grant` /
+`unsupported_grant_type`.
 
-### `GET /userinfo`
+## Admin API (di belakang control panel, :3000, diakses via `/admin/*` proxy :3001)
 
-Header: `Authorization: Bearer <access_token>`
+Route butuh session admin (cookie `cp_sid`).
 
-Success (200):
+| Method | Path | Deskripsi |
+| :--- | :--- | :--- |
+| POST | `/admin/login` | Admin login (anggota group `admin`) -> set-cookie `cp_sid` (signed) |
+| GET | `/admin/me` | Identitas admin yang sedang login |
+| POST | `/admin/logout` | Hapus sesi admin |
+| GET | `/admin/users` | Daftar user |
+| POST | `/admin/users` | Buat user `{name, email, password, status?}` |
+| PATCH | `/admin/users/:id` | Ubah user (`name`, `email`, `status`, `password` opsional). Ganti password -> trigger `PasswordChanged`; `status=INACTIVE` -> trigger `SessionRevoked` |
+| GET | `/admin/users/:id/groups` | Group milik user |
+| POST | `/admin/users/:id/groups` | Tambah user ke group `{groupId}` -> 204 |
+| DELETE | `/admin/users/:id/groups/:groupId` | Keluarkan user dari group -> 204 |
+| GET | `/admin/groups` | Daftar group |
+| POST | `/admin/groups` | Buat group `{name, description?}` |
+| PATCH | `/admin/groups/:id` | Ubah group |
+| GET | `/admin/applications` | Daftar aplikasi (termasuk redirect URIs) |
+| POST | `/admin/applications` | Buat aplikasi `{name, launchUrl?, logoutNotificationUrl, redirectUris[], status?}` -> 201, client secret hanya ditampilkan sekali |
+| PATCH | `/admin/applications/:id` | Ubah aplikasi |
+| GET | `/admin/applications/:id/policies` | Policy ALLOW aplikasi (per group) |
+| POST | `/admin/applications/:id/policies` | Tambah policy `{groupId}` -> 201 |
+| DELETE | `/admin/applications/:id/policies/:groupId` | Hapus policy -> 204 + emit `AccessPolicyChanged` (hanya ke app itu) |
+| GET | `/admin/metrics/snapshot` | JSON snapshot metrics untuk dashboard |
 
-```json
-{
-  "sub": "<user id>",
-  "sid": "<central session id>",
-  "name": "Alice",
-  "email": "alice@example.com",
-  "groups": ["employees"]
-}
-```
+## Control Panel (:3001)
 
-Missing/invalid token returns `401` with `WWW-Authenticate: Bearer`.
+- `GET /`: Frontend React SPA (Users, Groups, Applications, Policies, Metrics).
+- `* /admin/*`: thin proxy ke `auth-server:3000` (menghindari CORS browser).
 
-### `POST /logout`
+## App A (:4001) & App B (:4002)
 
-Revokes the central session identified by the `auth_sid` cookie (marking it
-`REVOKED` with reason `sso_logout`), writes an audit `logout` row, and clears
-the cookie. Returns `200 { "success": true }` even when there is no active
-session (idempotent).
+| Method | Path | Deskripsi |
+| :--- | :--- | :--- |
+| GET | `/login` | Mulai SSO: generate PKCE + `state` (disimpan di `oauth_state`), redirect ke authorize endpoint |
+| GET | `/callback` | Validasi state, tukar code, ambil userinfo, buat local session + profile cache, redirect home |
+| GET | `/api/me` | Identitas + status local session (cookie `app_a_sid` / `app_b_sid`) |
+| GET | `/api/activity-log` | 50 activity log terakhir app ini |
+| GET | `/api/processed-events` | 50 processed events terakhir app ini |
+| POST | `/api/logout` | Logout lokal (hanya sesi app ini) + clear cookie |
+| POST | `/internal/logout` | Revoke local session dari event worker |
 
-## Health probes (B03)
+### `POST /internal/logout` (kontrak)
 
-Liveness = the process responds at all (no dependency checks). Readiness =
-dependencies reachable; returns `200` `{ "status": "ok", "checks": {...} }` or
-`503` `{ "status": "degraded", "checks": {...} }` naming the failed component
-without sensitive internals.
+Header: `x-internal-signature` = HMAC-SHA256(`INTERNAL_HMAC_SECRET`,
+timestamp + canonical event body), `x-internal-timestamp` = epoch detik
+(maksimal selisih `INTERNAL_HMAC_TTL_SECONDS`).
+
+Body: `{eventId, eventType, userId, centralSessionId?, applicationId?,
+reason?}`; eventType `SessionRevoked` / `PasswordChanged` /
+`AccessPolicyChanged`. Revoke local session + insert `processed_events`
+dalam satu transaksi; event_id yang sudah diproses di-skip.
+
+## Health probes (untuk B03)
+
+Liveness = proses merespons (tanpa cek dependency). Readiness = dependency
+sehat; `200 {"status":"ok","checks":{...}}` atau `503
+{"status":"degraded","checks":{...}}` dengan nama komponen yang gagal.
 
 | Service | Liveness | Readiness | Checks |
 | :--- | :--- | :--- | :--- |
-| auth-server | `GET /health/live` | `GET /health/ready` | `database` (postgres-primary `SELECT 1`) |
+| auth-server | `GET /health/live` | `GET /health/ready` | `database` (postgres-primary `SELECT 1`), `broker` (RabbitMQ ping) |
 | app-a / app-b | `GET /health/live` | `GET /health/ready` | `database` (postgres-local `SELECT 1`) |
-| sync-worker | `GET :3002/health/live` | `GET :3002/health/ready` | `database` + `broker` (RabbitMQ queue check) |
+| sync-worker | `GET :3002/health/live` | `GET :3002/health/ready` | `database` + `broker` |
 
-`GET /health` remains as a backward-compatible alias of `/health/ready` on
-auth-server and the apps.
+`GET /health` tetap sebagai alias readiness (backward compatible) di
+auth-server dan apps.
 
-## Metrics (B02)
+## Metrics (untuk B02)
 
-| Method | Path | Description | Notes |
-| :--- | :--- | :--- | :--- |
-| GET | `/metrics` (auth-server) | Prometheus text exposition: HTTP RED metrics, `rabbitmq_queue_messages` (main/retry/DLQ), `outbox_pending_events` | Scrape target |
-| GET | `/metrics` (sync-worker :3002) | Prometheus text: `outbox_events_published_total`, `events_handled_total`, `events_dead_lettered_total` | Scrape target |
-| GET | `/admin/metrics/snapshot` (auth-server) | JSON snapshot for the control-panel dashboard (latency, errors, queue depths, outbox) | Requires admin session; reached via the control-panel `/admin/*` proxy |
-
-Queue depths are read live from the broker (`checkQueue`); the outbox pending
-count comes from the primary DB — both reflect real state, never hardcoded.
-
-## App A (Phase 3)
-
-| Method | Path | Description |
+| Method | Path | Deskripsi |
 | :--- | :--- | :--- |
-| GET | `/login` | Generate PKCE + `state`, then redirect to the Auth Provider authorize endpoint |
-| GET | `/callback` | Validate state, exchange code, fetch userinfo, create local session + profile cache, redirect home |
-| GET | `/health/live` | Liveness probe |
-| GET | `/health/ready` | Readiness probe (postgres-local `SELECT 1`) |
-| POST | `/internal/logout` | Revoke local sessions for an event (HMAC-signed, idempotent) |
+| GET | `/metrics` (auth-server) | Prometheus: `http_requests_total`, `http_request_duration_seconds`, `rabbitmq_queue_messages` (main/retry/DLQ), `outbox_pending_events` |
+| GET | `/metrics` (sync-worker :3002) | Prometheus: `outbox_events_published_total`, `events_handled_total{result}`, `events_dead_lettered_total` |
+| GET | `/admin/metrics/snapshot` (auth-server) | JSON untuk dashboard control panel |
