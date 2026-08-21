@@ -53,9 +53,6 @@ Ada 8 service yang berjalan dalam docker compose:
 2. **OAuth**: app generate PKCE + `state` -> redirect `/oauth/authorize` -> policy evaluation -> one-time code -> `POST /oauth/token` (PKCE verified) -> opaque access token -> `GET /userinfo` -> app buat local session sendiri.
 3. **Revocation**: SSO logout / password change / user deactivate / policy change menulis event ke outbox dalam satu transaksi; worker publish ke RabbitMQ (confirm), consume, dan memanggil `/internal/logout` tiap app. Gagal -> retry dengan backoff eksponensial -> DLQ setelah maksimum percobaan. 
 
-
-Untuk detail arsitektur dan alur ada di: [`docs/arsitektur.md`](docs/arsitektur.md).
-
 ## 4. Keputusan Teknis
 
 | Topik | Keputusan |
@@ -63,7 +60,7 @@ Untuk detail arsitektur dan alur ada di: [`docs/arsitektur.md`](docs/arsitektur.
 | Token strategy | **Opaque access token**; hash-nya disimpan di DB, bukan JWT. Bisa di-revoke kapan saja (termasuk ikut ke-revoke saat central session di-revoke). **Konsekuensi:** setiap validasi butuh 1 query DB (JWT sulit di-revoke). |
 | Message broker | **RabbitMQ**; dipakai untuk routing, retry (backoff), dan DLQ. **Konsekuensi:** broker mati tidak menghilangkan event, event tetap tersimpan di outbox dan dikirim lagi setelah broker pulih. |
 | Autentikasi `/internal/logout` | **HMAC-SHA256** dengan shared secret + timestamp, karena endpoint ini bukan OAuth client. **Konsekuensi:** worker dan semua app harus memegang secret yang sama; timestamp mencegah replay request lama. |
-| Hapus data | **Deactivate via `status`** tanpa `deleted_at` — tidak ada DELETE fisik; "delete" di UI mengubah status. Dipilih karena tombstone bentrok dengan unique constraint (email, policy). **Konsekuensi:** data lama tidak bisa dihapus, hanya bisa dinonaktifkan. |
+| Hapus data | **Deactivate via `status`** tanpa `deleted_at` — tidak ada DELETE; "delete" di UI mengubah status. Dipilih karena bentrok dengan unique constraint (email, policy). **Konsekuensi:** data lama tidak bisa dihapus, hanya bisa dinonaktifkan. |
 
 ## 5. Technology Stack
 
@@ -101,4 +98,22 @@ memberships, applications, policies, metrics snapshot), app endpoints
 
 ## 8. Screenshot
 
-> TODO
+**Control panel: Users** (kelola user, status, group):
+
+![Control Panel Users](screenshots/control-panel-users.png)
+
+**App A setelah login SSO** (identitas, status session, activity log):
+
+![App A Home](screenshots/app-a-home.png)
+
+**Dashboard Metrics**: latency, error, queue depth live:
+
+![Metrics Dashboard](screenshots/metrics.png)
+
+**Liveness probe**: tetap `200` saat dependency mati:
+
+![Liveness](screenshots/liveness.png)
+
+**Readiness probe** — `200` dengan checks `database` + `broker` ready:
+
+![Readiness](screenshots/readiness.png)
